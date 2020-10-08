@@ -6,53 +6,18 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 
-def close_figs():
+class MicrowaveImager:
     
-    for i in range(100):
-        plt.close()
-
-
-def info():
-    print(
-    """
-    https://www.eumetsat.int/website/home/Satellites/FutureSatellites/EUMETSATPolarSystemSecondGeneration/MWI/index.html
-    
-    The Microwave Imager (MWI) is a conically scanning radiometer, capable of measuring 
-    thermal radiance emitted by the Earth, at high spatial resolution in the microwave 
-    region of the electromagnetic spectrum.
-    
-    Channels above 89 GHz are measured at V polarisation only.
-    
-    Channel 	Frequency 	Bandwidth 	Polarisation 	Radiometric Sensitivity (***NEΔT) 	Footprint Size at 3dB
-    MWI-14 	183.31±7.0 GHz 	2x2000 MHz 	V 	1.3 	10 km
-    MWI-15 	183.31±6.1 GHz 	2x1500 MHz 	V 	1.2 	10 km
-    MWI-16 	183.31±4.9 GHz 	2x1500 MHz 	V 	1.2 	10 km
-    MWI-17 	183.31±3.4 GHz 	2x1500 MHz 	V 	1.2 	10 km
-    MWI-18 	183.31±2.0 GHz 	2x1500 MHz 	V 	1.3 	10 km
-    """
-    )
-    
-
-if __name__ == '__main__':
-    
-    info()
-    
-    # set paths
-    path_fig = '/home/nrisse/uniHome/WHK/eumetsat/plots/'
-    path_sensitivity = '/home/nrisse/uniHome/WHK/eumetsat/sensitivity/'
-    path_data = '/home/nrisse/uniHome/WHK/eumetsat/data/'
-    
-    #%% set frequencies of channels (2 frequencies a)
+    # frequencies of channels (2 frequencies per channel)
     ch_14_f = np.array([183.31-7.0, 183.31+7.0])
     ch_15_f = np.array([183.31-6.1, 183.31+6.1])
     ch_16_f = np.array([183.31-4.9, 183.31+4.9])
     ch_17_f = np.array([183.31-3.4, 183.31+3.4])
     ch_18_f = np.array([183.31-2.0, 183.31+2.0])
-    
-    # store as array
+
     ch_f_arr = np.array([ch_14_f, ch_15_f, ch_16_f, ch_17_f, ch_18_f])
     
-    # set bandwidth frequencies of channels (4 frequencies a)
+    # bandwidth frequencies of channels (4 frequencies a)
     ch_14_bw = 2
     ch_15_bw = 1.5
     ch_16_bw = 1.5
@@ -69,12 +34,52 @@ if __name__ == '__main__':
                            183.31+3.4-.5*ch_17_bw, 183.31+3.4+.5*ch_17_bw])
     ch_18_f_bw = np.array([183.31-2.0-.5*ch_18_bw, 183.31-2.0+.5*ch_18_bw, 
                            183.31+2.0-.5*ch_18_bw, 183.31+2.0+.5*ch_18_bw])
-    
-    # store as array
+
     ch_f_bw_arr = np.array([ch_14_f_bw, ch_15_f_bw, ch_16_f_bw, ch_17_f_bw, ch_18_f_bw])
     
+    # label for every channel
     freq_txt = ('MWI-14\n183.31±7.0 GHz', 'MWI-15\n183.31±6.1 GHz', 'MWI-16\n183.31±4.9 GHz', 'MWI-17\n183.31±3.4 GHz',
                          'MWI-18\n183.31±2.0 GHz')
+    
+    def __init__(self, path_sensitivity, path_fig, path_data):
+        
+        
+        self.mwi_dsb_data = self.read_excel(path_sensitivity + 'MWI-RX183_DSB_Matlab.xlsx')
+        self.mwi_data = self.read_excel(path_sensitivity + 'MWI-RX183_Matlab.xlsx')
+
+    def print_info():
+        """
+        Print information on MWI
+        """
+
+        print(
+        """
+        https://www.eumetsat.int/website/home/Satellites/FutureSatellites/EUMETSATPolarSystemSecondGeneration/MWI/index.html
+        
+        The Microwave Imager (MWI) is a conically scanning radiometer, capable of measuring 
+        thermal radiance emitted by the Earth, at high spatial resolution in the microwave 
+        region of the electromagnetic spectrum.
+        
+        Channels above 89 GHz are measured at V polarisation only.
+        
+        Channel 	Frequency 	Bandwidth 	Polarisation 	Radiometric Sensitivity (***NEΔT) 	Footprint Size at 3dB
+        MWI-14 	183.31±7.0 GHz 	2x2000 MHz 	V 	1.3 	10 km
+        MWI-15 	183.31±6.1 GHz 	2x1500 MHz 	V 	1.2 	10 km
+        MWI-16 	183.31±4.9 GHz 	2x1500 MHz 	V 	1.2 	10 km
+        MWI-17 	183.31±3.4 GHz 	2x1500 MHz 	V 	1.2 	10 km
+        MWI-18 	183.31±2.0 GHz 	2x1500 MHz 	V 	1.3 	10 km
+        """
+        )
+
+  
+if __name__ == '__main__':
+    
+    info()
+    
+    # set paths
+    path_fig = '/home/nrisse/uniHome/WHK/eumetsat/plots/'
+    path_sensitivity = '/home/nrisse/uniHome/WHK/eumetsat/sensitivity/'
+    path_data = '/home/nrisse/uniHome/WHK/eumetsat/data/'
     
     #%% read data from MWI-RX183_DSB_Matlab.xlsx
     file_excel_dsb = path_sensitivity + 'MWI-RX183_DSB_Matlab.xlsx'
@@ -92,7 +97,7 @@ if __name__ == '__main__':
     assert np.sum(data_dsb_ch14.iloc[:, 0] != data_dsb_ch18.iloc[:, 0]) == 0
     
     # write measurement into single dataframe
-    mwi_dsb_data = pd.DataFrame()    
+    mwi_dsb_data = pd.DataFrame()
     mwi_dsb_data['frequency [GHz]'] = data_dsb_ch14.iloc[:, 0]  # use frequency from channel 14
     mwi_dsb_data['ch14 sensitivity [dB]'] = data_dsb_ch14.iloc[:, 1]
     mwi_dsb_data['ch15 sensitivity [dB]'] = data_dsb_ch15.iloc[:, 1]
