@@ -5,138 +5,75 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import sys
-
 sys.path.append('/home/nrisse/uniHome/WHK/eumetsat/scripts')
 from mwi_183 import MWI183GHz as mwi
 
 
-# list of atmospheric profiles
-profiles = np.array(['arctic_winter', 'arctic_summer',
-                     'central_europe_winter', 'central_europe_summer',
-                     'tropics_february', 'tropics_august',
-                     'standard'])
+"""
+Description
 
-# format for boxplot
-pam_colors = {'central_europe_winter': '#008B00', 'central_europe_summer': '#51FF51',
-                'arctic_winter': '#002375', 'arctic_summer': '#6594FF',
-                'tropics_february': '#AE0000', 'tropics_august': '#FF5555',
-                'standard': '#000000'}
+Analyze seasonal and regional dependency of the difference between the virtual
+MWI measurement and the TB calculated with PAMTRA.
 
-# format for line plot
-pam_line_fmt = {'central_europe_winter': 'g:', 'central_europe_summer': 'g-',
-                'arctic_winter': 'b:', 'arctic_summer': 'b-',
-                'tropics_february': 'r:', 'tropics_august': 'r-',
-                'standard': 'k-'}
-
-# format for point
-pam_point_fmt = {'central_europe_winter': dict(marker='*', fillstyle='none', markersize=7, markeredgecolor='g', linestyle='None'),
-                 'central_europe_summer': dict(marker='o', fillstyle='none', markersize=7, markeredgecolor='g', linestyle='None'),
-                 'arctic_winter': dict(marker='*', fillstyle='none', markersize=7, markeredgecolor='b', linestyle='None'),
-                 'arctic_summer': dict(marker='o', fillstyle='none', markersize=7, markeredgecolor='b', linestyle='None'),
-                 'tropics_february': dict(marker='*', fillstyle='none', markersize=7, markeredgecolor='r', linestyle='None'),
-                 'tropics_august': dict(marker='o', fillstyle='none', markersize=7, markeredgecolor='r', linestyle='None'),
-                 'standard': dict(marker='o', fillstyle='none', markersize=7, markeredgecolor='k', linestyle='None')}
-
-# label for legend
-pam_label = {'central_europe_winter': 'Central Europe\n(Winter)', 'central_europe_summer': 'Central Europe\n(Summer)',
-             'arctic_winter': 'Arctic\n(Winter)', 'arctic_summer': 'Arctic\n(Summer)',
-             'tropics_february': 'Tropics\n(February)', 'tropics_august': 'Tropics\n(August)',
-             'standard': 'standard atmosphere\nwith RH=0%'}
-
-# label for legend with specific times of radiosonde launch: This has to be changed by hand if other data is used!!!
-pam_label_detail = {'central_europe_winter': 'Essen\n(2020-02-02 12)', 'central_europe_summer': 'Essen\n(2020-08-01 00)',
-                    'arctic_winter': 'Ny-Alesund\n(2020-02-02 12)', 'arctic_summer': 'Ny-Alesund\n(2020-08-01 12)',
-                    'tropics_february': 'Singapore\n(2020-02-01 12)', 'tropics_august': 'Singapore\n(2020-08-01 12)',
-                    'standard': 'standard atmosphere\nwith RH=0%'}
+Requires:
+    - seven radiosonde profiles
+    
+Caution: no clouds included
+"""
 
 
-class RadiosondeMWI:
 
-    def __init__(self, path_data, path_fig):
-        """
-        Class to display radiosonde profiles that are used for MWI analysis
-        """
+profile_prop = {'arctic_winter': {'file_profile':  'atmosphere/2020/02/01/ID_01004_202002011200.txt',
+                                  'file_tb':       'brightness_temperature/2020/02/01/TB_PAMTRA_ID_01004_202002011200.txt',
+                                  'boxplot_color': '#002375',
+                                  'line_format':   'b:',
+                                  'point_format':  dict(marker='*', fillstyle='none', markersize=7, markeredgecolor='b', linestyle='None'),
+                                  'label':         'Ny-Alesund\n(2020-02-01 12)'
+                                  },
+                'arctic_summer': {'file_profile':  'atmosphere/2020/08/01/ID_01004_202008011200.txt',
+                                  'file_tb':       'brightness_temperature/2020/08/01/TB_PAMTRA_ID_01004_202008011200.txt',
+                                  'boxplot_color': '#6594FF',
+                                  'line_format':   'b-',
+                                  'point_format':  dict(marker='o', fillstyle='none', markersize=7, markeredgecolor='b', linestyle='None'),
+                                  'label':         'Ny-Alesund\n(2020-08-01 12)'
+                                  },
+                'central_europe_winter': {'file_profile':  'atmosphere/2020/02/01/ID_10410_202002011200.txt',
+                                          'file_tb':       'brightness_temperature/2020/02/01/TB_PAMTRA_ID_10410_202002011200.txt',
+                                          'boxplot_color': '#008B00',
+                                          'line_format':   'g:',
+                                          'point_format':  dict(marker='*', fillstyle='none', markersize=7, markeredgecolor='g', linestyle='None'),
+                                          'label':         'Essen\n(2020-02-01 12)'
+                                          }, 
+                'central_europe_summer': {'file_profile':  'atmosphere/2020/08/01/ID_10410_202008011200.txt',
+                                          'file_tb':       'brightness_temperature/2020/08/01/TB_PAMTRA_ID_10410_202008011200.txt',
+                                          'boxplot_color': '#51FF51',
+                                          'line_format':   'g-',
+                                          'point_format':  dict(marker='o', fillstyle='none', markersize=7, markeredgecolor='g', linestyle='None'),
+                                          'label':         'Essen\n(2020-08-01 12)'
+                                          },
+                'tropics_february': {'file_profile':  'atmosphere/2020/02/01/ID_48698_202002011200.txt',
+                                     'file_tb':       'brightness_temperature/2020/02/01/TB_PAMTRA_ID_48698_202002011200.txt',
+                                     'boxplot_color': '#AE0000',
+                                     'line_format':   'r:',
+                                     'point_format':  dict(marker='*', fillstyle='none', markersize=7, markeredgecolor='r', linestyle='None'),
+                                     'label':         'Singapore\n(2020-02-01 12)'
+                                     },
+                'tropics_august': {'file_profile':  'atmosphere/2020/08/01/ID_48698_202008011200.txt',
+                                   'file_tb':       'brightness_temperature/2020/08/01/TB_PAMTRA_ID_48698_202008011200.txt',
+                                   'boxplot_color': '#FF5555',
+                                   'line_format':   'r-',
+                                   'point_format':  dict(marker='o', fillstyle='none', markersize=7, markeredgecolor='r', linestyle='None'),
+                                   'label':         'Singapore\n(2020-08-01 12)'
+                                   },
+                'standard': {'file_profile':  None,
+                             'file_tb':       'brightness_temperature/TB_PAMTRA_standard_atmosphere.txt',
+                             'boxplot_color': '#000000',
+                             'line_format':   'k-',
+                             'point_format':  dict(marker='o', fillstyle='none', markersize=7, markeredgecolor='k', linestyle='None'),
+                             'label':         'Standard atmosphere\nwith RH=0%'
+                             }
+                }
 
-        self._path_data = path_data
-        self._path_fig = path_fig
-
-        # profiles (without standard atmosphere)
-        # todo: add profile of standard atmosphere
-        self.profiles = np.array(['arctic_winter', 'arctic_summer',
-                                  'central_europe_winter', 'central_europe_summer',
-                                  'tropics_february', 'tropics_august'])
-
-        # IWV
-        self.IWV = pd.DataFrame(data=np.nan, index=['IWV'], columns=profiles)
-
-    def read_profile(self, profile):
-        """
-        Read radiosonde profiles
-        """
-
-        path = self._path_data + 'atmosphere/'
-
-        rs_df = pd.read_csv(path + profile + '.txt', comment='#', delim_whitespace=True,
-                            names=['p [hPa]', 'z [m]', 'T [C]', 'T_dew [C]', 'RH [%]', 'r [g/kg]', 'wdir [deg]',
-                                   'SKNT [knot]', 'THTA [K]', 'THTE [K]', 'THTV [K]'])
-
-        return rs_df
-
-    def calculate_iwv(self):
-        """
-        Calculate IWV of profile
-        """
-
-        Rd = 287  # J / kg K
-
-        for profile in self.profiles:
-
-            rs_df = self.read_profile(profile)
-
-            z = rs_df['z [m]'].values
-            T = rs_df['T [C]'].values + 273.15  # K
-            p = rs_df['p [hPa]'].values * 100  # Pa
-            r = rs_df['r [g/kg]'].values * 1e-3  # kg/kg
-
-            # density of water vapor [kg/m3]
-            rho_v = p / (Rd * T) * r / (1 - 1.608 * r)
-
-            # integrated water vapor [kg/m2]
-            dz = z[1:] - z[:-1]
-            self.IWV[profile] = np.nansum(rho_v[:-1] * dz)
-
-    def plot_atmosphere(self):
-        """
-        Plot dropsonde profile
-        """
-
-        fig = plt.figure(figsize=(9, 6))
-
-        ax1 = fig.add_subplot(121)
-        ax1.invert_yaxis()
-        ax2 = fig.add_subplot(122, sharey=ax1)
-
-        for profile in self.profiles:
-
-            rs_df = self.read_profile(profile)
-
-            ax1.plot(rs_df['T [C]'], rs_df['p [hPa]'], pam_line_fmt[profile], label=pam_label_detail[profile])
-            ax2.plot(rs_df['RH [%]'], rs_df['p [hPa]'], pam_line_fmt[profile], label=pam_label_detail[profile])
-
-            ax1.set_ylabel('Pressure [hPa]')
-            ax1.set_xlabel('Temperature [°C]')
-            ax2.set_xlabel('Relative humidity [%]')
-
-            for ax in [ax1, ax2]:
-                ax.grid(True)
-                ax.set_ylim([1040, 0])
-
-            ax2.set_xlim([0, 100])
-
-        ax2.legend(bbox_to_anchor=(1.05, 0.5), loc='center left', frameon=False)
-        fig.tight_layout()
-
-        plt.savefig(self._path_fig + 'radiosonde_profiles.png', dpi=200)
 
 
 class MicrowaveImager:
@@ -153,125 +90,15 @@ class MicrowaveImager:
         
         # read sensitivity data
         self.mwi_dsb_data = self.get_data(file='MWI-RX183_DSB_Matlab.xlsx')
-        self.mwi_data = self.get_data(file='MWI-RX183_Matlab.xlsx')
+        #self.mwi_data = self.get_data(file='MWI-RX183_Matlab.xlsx')
         
         # linearize and normalize sensitivity data
-        self.mwi_dsb_data_lino = self.get_data_lino(dataframe=self.mwi_dsb_data)
-        self.mwi_data_lino = self.get_data_lino(dataframe=self.mwi_data)
-
+        self.mwi_dsb_data_lino = self.prepare_data(dataframe=self.mwi_dsb_data)
+        #self.mwi_data_lino = self.prepare_data(dataframe=self.mwi_data)
+        
         # read pamtra simulation
         self.pam_data_df = self.read_pamtra_simulation()
 
-    def get_data(self, file):
-        """
-        Read sensitivity measurement from excel file
-        """
-        
-        # read data from excel sheet
-        data_ch14 = pd.read_excel(self._path_sensitivity+file, sheet_name='Ch14', usecols=[0, 1],
-                                  names=['frequency [GHz]', 'sensitivity [dB]'], header=None)
-        data_ch15 = pd.read_excel(self._path_sensitivity+file, sheet_name='Ch15', usecols=[0, 1],
-                                  names=['frequency [GHz]', 'sensitivity [dB]'], header=None)
-        data_ch16 = pd.read_excel(self._path_sensitivity+file, sheet_name='Ch16', usecols=[0, 1],
-                                  names=['frequency [GHz]', 'sensitivity [dB]'], header=None)
-        data_ch17 = pd.read_excel(self._path_sensitivity+file, sheet_name='Ch17', usecols=[0, 1],
-                                  names=['frequency [GHz]', 'sensitivity [dB]'], header=None)
-        data_ch18 = pd.read_excel(self._path_sensitivity+file, sheet_name='Ch18', usecols=[0, 1],
-                                  names=['frequency [GHz]', 'sensitivity [dB]'], header=None)
-        
-        # check if frequencies are the same
-        assert np.sum(data_ch14.iloc[:, 0] != data_ch15.iloc[:, 0]) == 0
-        assert np.sum(data_ch14.iloc[:, 0] != data_ch16.iloc[:, 0]) == 0
-        assert np.sum(data_ch14.iloc[:, 0] != data_ch17.iloc[:, 0]) == 0
-        assert np.sum(data_ch14.iloc[:, 0] != data_ch18.iloc[:, 0]) == 0
-        
-        # write data into single dataframe
-        data = pd.DataFrame()
-        data['frequency [GHz]'] = data_ch14.iloc[:, 0]  # use frequency from channel 14
-        data['ch14 sensitivity [dB]'] = data_ch14.iloc[:, 1]
-        data['ch15 sensitivity [dB]'] = data_ch15.iloc[:, 1]
-        data['ch16 sensitivity [dB]'] = data_ch16.iloc[:, 1]
-        data['ch17 sensitivity [dB]'] = data_ch17.iloc[:, 1]
-        data['ch18 sensitivity [dB]'] = data_ch18.iloc[:, 1]
-                
-        return data
-    
-    @staticmethod
-    def linearize_srf(values):
-        """
-        Convert spectral response function from dB to linear units
-        number of rows:    number of frequencies
-        number of columns: number of channel
-        """
-        
-        values_lin = 10**(0.1 * values)
-        
-        return values_lin
-    
-    @staticmethod
-    def normalize_srf(values_lin):
-        """
-        Normalize linear spectral response function to a sum along each column of 1
-        number of rows:    number of frequencies
-        number of columns: number of channel
-        """
-        
-        values_norm = values_lin / values_lin.sum(axis=0)
-    
-        return values_norm
-    
-    def get_data_lino(self, dataframe):
-        """
-        Linearize and normalize measured spectral response functions
-        """
-        
-        freqs = dataframe.values[:, 0]  # get frequencies
-        values = dataframe.values[:, 1:]  # get sensitivity in dB
-        
-        values_lino = self.normalize_srf(values_lin=self.linearize_srf(values))
-        
-        # add to data frames
-        data_lino = pd.DataFrame()    
-        data_lino['frequency [GHz]'] = freqs
-        data_lino['ch14 sensitivity'] = values_lino[:, 0]
-        data_lino['ch15 sensitivity'] = values_lino[:, 1]
-        data_lino['ch16 sensitivity'] = values_lino[:, 2]
-        data_lino['ch17 sensitivity'] = values_lino[:, 3]
-        data_lino['ch18 sensitivity'] = values_lino[:, 4]
-        
-        return data_lino
-        
-    def find_matching_frequency(self):
-        """
-        UPDATE: not necessary. Frequencies for Pamtra are set identical to the measurements.
-        
-        comment: df_mwi_dsb has jump in frequency between 183.257 GHz (index 529) and 183.367 GHz (index 530)
-        (difference is 0.11)
-        comment: df_mwi step in frequency is always 0.015
-        comment: the frequencies from both files do not overlap, the values are shiftet by 0.005 GHz 
-        comment: however, this can be corrected by interpolating the modelled brightness temperatures to the used
-        frequencies
-        comment: a regular grid of modelled brightness temperatures is defined with step width 0.
-        """
-        
-        df_mwi_dsb = self.mwi_dsb_data['frequency [GHz]'].values[1:] - self.mwi_dsb_data['frequency [GHz]'].values[:-1]
-        df_mwi = self.mwi_data['frequency [GHz]'].values[1:] - self.mwi_data['frequency [GHz]'].values[:-1]
-    
-        print(np.max(df_mwi_dsb))
-        ix = np.where(df_mwi_dsb == np.max(df_mwi_dsb))[0][0]
-        print(self.mwi_dsb_data['frequency [GHz]'].values[ix])
-        print(self.mwi_dsb_data['frequency [GHz]'].values[ix+1])
-        
-        print(np.max(df_mwi))  # constant
-        
-        # min always constant 0.015
-        print(np.min(df_mwi_dsb))
-        print(np.min(df_mwi))
-        
-        # do the frequencies overlap?
-        print(self.mwi_dsb_data['frequency [GHz]'].values[ix:ix+10])
-        print(self.mwi_data['frequency [GHz]'].values[:10])
-    
     def save_sensitivity_plot(self, fig, axes, filename, linear=True):
         """
         Plot sensitivity measurement
@@ -335,7 +162,7 @@ class MicrowaveImager:
             # MWI-RX183_DSB_Matlab.xlsx dataset
             axes[i].plot(self.mwi_dsb_data['frequency [GHz]'], self.mwi_dsb_data['ch'+channel+' sensitivity [dB]'],
                          color='k', linewidth=0.9, label='MWI-RX183_DSB_Matlab.xlsx')
-        
+            
             # MWI-RX183_Matlab.xslx
             axes[i].plot(self.mwi_data['frequency [GHz]'], self.mwi_data['ch'+channel+' sensitivity [dB]'],
                          color='blue', alpha=0.5, linewidth=0.9, label='MWI-RX183_Matlab.xlsx')
@@ -420,7 +247,7 @@ class MicrowaveImager:
         """
         
         freqs_pamtra = self.mwi_dsb_data['frequency [GHz]'].values  # frequencies from dsb file
-        freqs_pamtra = np.append(freqs_pamtra, mwi.freq_bw_center.flatten())  # chennel frequencies
+        freqs_pamtra = np.append(freqs_pamtra, mwi.freq_bw_center.flatten())  # channel frequencies
         freqs_pamtra = np.unique(np.sort(freqs_pamtra))  # sort and remove duplicates
         
         # write frequencies to file
@@ -447,57 +274,32 @@ class MicrowaveImager:
         plt.grid()
         
         plt.savefig(self._path_fig + 'frequencies.png', dpi=400)
-    
-    def read_pamtra_simulation(self):
+        
+    def read_pamtra_simulation(self, path='/home/nrisse/uniHome/WHK/eumetsat/'):
         """
-        read data from pamtra simulation
+        Read data from PAMTRA simulation
         """
         
-        pam_data_df = pd.read_csv(self._path_data + 'mwi_pamtra_tb.txt', delimiter=',')
-        pam_data_df.rename(columns={'frequency_GHz': 'frequency [GHz]'}, inplace=True)  # for the join later
+        for i, profile in enumerate(profiles):
+            
+            file = path_data + profiles_tb_data[profile]
+            
+            if i == 0:
+                
+                pam_data_df = pd.read_csv(file, delimiter=',', comment='#')
+                pam_data_df.rename(columns={'TB': profile}, inplace=True)
+            
+            else:
+                
+                pam_data = pd.read_csv(file, delimiter=',', comment='#')
+                pam_data_df[profile] = pam_data['TB']
+                
+                # check if frequencies are identical (!!!) if not, values have to be joined
+                assert (pam_data['Frequency [GHz]'] == pam_data_df['Frequency [GHz]']).all
+                
+        pam_data_df.rename(columns={'Frequency [GHz]': 'frequency [GHz]'}, inplace=True)  # for the join later
         
         return pam_data_df
-    
-    def plot_pamtra_simulation(self):
-        """
-        plot pamtra simulation
-        """
-
-        fig = plt.figure(figsize=(9, 6))
-        ax = fig.add_subplot(111)
-        ax.set_title('PAMTRA simulation at 833 km nadir view (V-pol) and MWI 183.31 GHz channels\nfor different ' +
-                     'radiosonde profiles and standard atmosphere (RH=0%)')
-        
-        for profile in profiles:
-            ax.plot(self.pam_data_df['frequency [GHz]'], self.pam_data_df[profile], pam_line_fmt[profile],
-                    label=pam_label_detail[profile])
-        
-        # add MWI channels
-        for i, channel in enumerate(mwi.channels_str):
-            
-            # annotate channel name
-            ax.annotate(text=mwi.freq_txt[i][4:6], xy=[mwi.freq_center[i, 0]-0.4, 171], fontsize=7,
-                        bbox=dict(boxstyle='square', fc='white', ec='none', pad=0))
-            ax.annotate(text=mwi.freq_txt[i][4:6], xy=[mwi.freq_center[i, 1]-0.4, 171], fontsize=7,
-                        bbox=dict(boxstyle='square', fc='white', ec='none', pad=0))
-            
-            # add vertical lines
-            ax.axvline(x=183.31, color='pink', linestyle='-', alpha=0.5)  # mark line center
-            ax.axvline(x=mwi.freq_center[i, 0], color='gray', linestyle='-', alpha=0.5)  # mark left channel frequency
-            ax.axvline(x=mwi.freq_center[i, 1], color='gray', linestyle='-', alpha=0.5)  # mark right channel frequency
-            
-        ax.legend(bbox_to_anchor=(1.05, 0.5), loc='center left', frameon=False)
-        ax.grid(axis='y')
-        
-        ax.set_ylim([170, 290])
-        ax.set_xlim([np.min(self.pam_data_df['frequency [GHz]']), np.max(self.pam_data_df['frequency [GHz]'])])
-        
-        ax.set_xlabel('Frequency [GHz]')
-        ax.set_ylabel('Brightness temperature [K]')
-        
-        fig.tight_layout()
-        
-        plt.savefig(self._path_fig + 'pamtra_simulation.png', dpi=200)
 
     def create_noise_values(self, dataframe, std=0.1, n_noise=1000):
         """
@@ -520,7 +322,8 @@ class MicrowaveImager:
 
         return srf_plus_noise
     
-    def join_pam_on_sensitivity(self, dataframe):
+    @staticmethod
+    def join_pam_on_srf(pam, srf):
         """
         Combine PAMTRA brightness temperature dataframe and linearized and normalized sensitivity
         data at matching frequencies.
@@ -531,8 +334,8 @@ class MicrowaveImager:
         N = 10000
         
         # make copy of data 
-        pam = self.pam_data_df.copy(deep=True)
-        srf = dataframe.copy(deep=True)
+        pam = pam.copy(deep=True)
+        srf = srf.copy(deep=True)
         
         # convert frequency to integer and use as join
         pam['frequency [GHz]'] = np.round(pam['frequency [GHz]']*N).astype(int)
@@ -541,9 +344,9 @@ class MicrowaveImager:
         # merge the data on the matching frequencies and convert frequency to float again
         srf_pam = pd.merge(pam, srf, on='frequency [GHz]')
         srf_pam['frequency [GHz]'] = srf_pam['frequency [GHz]'] / N
-
+        
         return srf_pam
-
+    
     @staticmethod
     def calculate_tb_mwi(tb, srf):
         """
@@ -554,15 +357,17 @@ class MicrowaveImager:
         
         return tb_mwi
 
-    def calculate_tb_pamtra(self, freqs, profile):
+    def calculate_tb_pamtra(tb, avg_freq, profile):
         """
         Calculate TB from PAMTRA at frequencies for a specific profile
+        
+        tb:  pandas dataframe with TB of profile
         """
         
-        tb_pam = self.pam_data_df.loc[self.pam_data_df['frequency [GHz]'].isin(freqs)][profile].mean()
+        tb_pam = tb.loc[tb['frequency [GHz]'].isin(avg_freq)][profile].mean()
         
         return tb_pam
-    
+        
     def plot_result(self, frequencies, filename, title, ylim):
         """
         Plot result without noise
@@ -574,7 +379,7 @@ class MicrowaveImager:
         """
 
         # join brightness temperature to the linear sensitivity dataframe
-        sens_mwi_dsb = self.join_pam_on_sensitivity(dataframe=self.mwi_dsb_data_lino)
+        sens_mwi_dsb = self.join_pam_on_srf(pam=self.pam_data_df, srf=self.mwi_dsb_data_lino)
 
         # create result for each of the modelled profiles
         fig = plt.figure(figsize=(10, 5))
@@ -631,7 +436,7 @@ class MicrowaveImager:
         """
 
         # join brightness temperature to the linear sensitivity dataframe
-        sens_mwi_dsb = self.join_pam_on_sensitivity(dataframe=self.mwi_dsb_data_lino)
+        sens_mwi_dsb = self.join_pam_on_srf(pam=self.pam_data_df, srf=self.mwi_dsb_data_lino)
 
         # create noise shape=(n_freq, n_noise, len(mwi.channels_str))
         srf_plus_noise = self.create_noise_values(dataframe=self.mwi_dsb_data_lino, std=std)
