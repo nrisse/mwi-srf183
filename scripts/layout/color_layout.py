@@ -48,3 +48,6 @@ profile_prop = {'arctic_winter': {'file_profile':  'atmosphere/2020/02/01/ID_010
                              'label':         'Standard atmosphere\nwith RH=0%'
                              }
                 }
+
+names = ['Ny Alesund', 'Essen', 'Singapore']
+colors = ['#002375', '#008B00', '#AE0000']

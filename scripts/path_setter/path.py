@@ -19,5 +19,4 @@ else:
     raise Exception('Can not set base path.')
 
 path_data = path_base + 'data/'
-path_sens = path_data + 'sensitivity/'
-path_plot = path_base + 'plots/bandpass_measurement/'
+path_plot = path_base + 'plots/'
