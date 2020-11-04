@@ -6,7 +6,6 @@ from mwi_183 import MWI183GHz as mwi
 
 
 
-
 def plot_atmosphere(self):
     """
     Plot dropsonde profile

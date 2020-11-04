@@ -7,3 +7,19 @@ __pycache__/
 *.png
 
 *.odt
+
+*.odp
+
+*.nc
+
+*.xml
+
+*.xls
+
+*.xlsx
+
+/data
+
+/deprecated_versions
+
+/plots

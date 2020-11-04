@@ -6,8 +6,9 @@ from glob import glob
 import sys
 import matplotlib.pyplot as plt
 sys.path.append('/home/nrisse/uniHome/WHK/eumetsat/scripts')
-from mwi_183 import MWI183GHz as mwi
-from sensitivity import profile_prop
+from mwi_info import mwi
+from seasonal_profiles import profile_prop
+from path_setter import *
 
 """
 Description
@@ -42,7 +43,7 @@ class PAMTRA_TB:
         
         return path
         
-    def read_all(self, path='/home/nrisse/uniHome/WHK/eumetsat/data/brightness_temperature/'):
+    def read_all(self, path=path_data+'brightness_temperature/'):
         """
         Read data from PAMTRA simulation
         """
@@ -125,5 +126,3 @@ if __name__ == '__main__':
     
     PAM.pam_data_df
     PAM.plot_pamtra_simulation()
-    
-

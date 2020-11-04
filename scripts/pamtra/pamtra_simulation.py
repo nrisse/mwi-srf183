@@ -73,6 +73,36 @@ def run_pamtra(freqs, atmosphere='standard'):
     return TB_mod
 
 
+def calculate_iwv(file):
+    """
+    Calculate integrated water vapor content from radiosonde profiles
+    """
+    
+    pam = pyPamtra.pyPamtra()
+    
+    # read radiosonde profile
+    rs = pd.read_csv(file, comment='#')
+    rs.drop(rs[rs['z [m]'] < 0].index , inplace=True)  # remove entries with negative height
+    rs.dropna(axis='index', subset=['p [hPa]', 'z [m]', 'T [C]', 'RH [%]'], inplace=True)
+    
+    # write profile to dictionary
+    pamData = dict()
+    pamData["press"] = rs['p [hPa]'] * 100
+    pamData["hgt"] = rs['z [m]']
+    pamData["temp"] = rs['T [C]'] + 273.15
+    pamData["relhum"] = rs['RH [%]']
+    
+    # write profile from dictionary
+    pam.createProfile(**pamData)
+    
+    # calculate iwv
+    pam.addIntegratedValues()
+    iwv = pam.p['iwv']
+    
+    return iwv
+
+
+
 def main():
 
     # todo: reselect atmosphere files and adapt read function above    
@@ -226,10 +256,41 @@ def main_standard_atmosphere():
     with open(base_dir_out+file, 'w') as f:
         f.write(header)
         data.to_csv(f, index=False)
+
+
+def iwv_of_all_profiles():
     
+    base_dir_out = '/home/nrisse/WHK/eumetsat/data/brightness_temperature/'
+    
+    # read data
+    folder_atmos = '/home/nrisse/WHK/eumetsat/data/atmosphere/'
+    files = []
+    for month in range(1, 13):
+        mm = str(month).zfill(2)
+        files.append(glob(folder_atmos+'20*/'+mm+'/*/*.txt'))
+
+    files = [f for sublist in files for f in sublist]
+    filenames = [f[-25:-4] for f in files]
+    
+    iwv_df = pd.DataFrame(columns=filenames, index=['iwv'], data=np.nan)
+    
+    for i, file in enumerate(files):
+        
+        print('{}/{}'.format(i, len(files)))
+        
+        iwv_df.loc['iwv', filenames[i]] = calculate_iwv(file)
+    
+    outfile = '/home/nrisse/WHK/eumetsat/data/iwv/iwv_pamtra.txt'
+    with open(outfile, 'w') as f:
+        f.write('# Integrated water vaport calculated with PAMTRA\n')
+        iwv_df.to_csv(f)
     
 
 if __name__ == '__main__':
 
-    main_all_data()
+    #main_all_data()
     #main_standard_atmosphere()
+    
+    # calculate iwv of all files
+    iwv_of_all_profiles()
+    

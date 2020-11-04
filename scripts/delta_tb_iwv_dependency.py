@@ -44,6 +44,33 @@ def calculate_iwv(z, T, p, r):
     return iwv
 
 
+def rh_to_iwv(relhum_lev, temp_lev, press_lev, hgt_lev):
+    '''
+    Calculate the integrated water vapour
+
+    Input:
+    T is in K
+    rh is in Pa/Pa
+    p is in Pa
+    z is in m
+
+    Output
+    iwv in kg/m^2
+    '''
+    dz = np.diff(hgt_lev, axis=-1)
+    relhum = (relhum_lev[..., 0:-1] + relhum_lev[..., 1:])/2.
+    temp = (temp_lev[..., 0:-1] + temp_lev[..., 1:])/2.
+
+    xp = -1.*np.log(press_lev[..., 1:]/press_lev[..., 0:-1])/dz
+    press = -1.*press_lev[..., 0:-1]/xp*(exp(-xp*dz)-1.)/dz
+
+    q = meteoSI.rh2q(relhum, temp, press)
+    rho_moist = meteoSI.moist_rho_q(press, temp, q)
+
+    return np.sum(q*rho_moist*dz)
+
+
+
 if __name__ == '__main__':
     
     # todo: get only 2019 profiles here and add the year to header
@@ -52,6 +79,7 @@ if __name__ == '__main__':
     path_base = '/home/nrisse/uniHome/WHK/eumetsat/'
     
     file_iwv = path_base + 'data/iwv/iwv.txt'
+    file_iwv_pam = path_base + 'data/iwv/iwv_pamtra.txt'
     file_freq_center = path_base + 'data/delta_tb/' + 'delta_tb_freq_center.txt'
     file_freq_bw = path_base + 'data/delta_tb/' + 'delta_tb_freq_bw.txt'
     file_freq_bw_center = path_base + 'data/delta_tb/' + 'delta_tb_freq_bw_center.txt'
@@ -63,11 +91,25 @@ if __name__ == '__main__':
     
     fig_all = path_base + 'plots/iwv_dependency/iwv_dependency_all.png'
     
+    # read delta_tb from file
+    delta_tb_freq_center = pd.read_csv(file_freq_center, sep=',', comment='#', index_col=0)
+    delta_tb_freq_bw = pd.read_csv(file_freq_bw, sep=',', comment='#', index_col=0)
+    delta_tb_freq_bw_center = pd.read_csv(file_freq_bw_center, sep=',', comment='#', index_col=0)
+        
+    # colors for plot
+    colors = {'01004': 'b',
+              '10410': 'g',
+              '48698': 'r',
+              '78954': 'orange',
+              'ndard': 'k',
+              }
+    
+    profiles = delta_tb_freq_center.columns
+    c_list = [colors[profile[3:8]] for profile in profiles]
+    
     #%%
     # calculate iwv of radiosonde profiles
     RS = Radiosonde()
-    profiles = delta_tb_freq_center.columns
-    profiles = profiles.drop('standard_atmosphere')
     
     iwv = pd.DataFrame(columns=delta_tb_freq_center.columns, data=np.nan, index=['iwv'])
     
@@ -93,18 +135,16 @@ if __name__ == '__main__':
     #%%
     # read iwv from file
     iwv = pd.read_csv(file_iwv, index_col=0)
+    iwv = iwv[profiles]  # reorder cols
     
-    # read delta_tb from file
-    delta_tb_freq_center = pd.read_csv(file_freq_center, sep=',', comment='#', index_col=0)
-    delta_tb_freq_bw = pd.read_csv(file_freq_bw, sep=',', comment='#', index_col=0)
-    delta_tb_freq_bw_center = pd.read_csv(file_freq_bw_center, sep=',', comment='#', index_col=0)
+    iwv_pam = pd.read_csv(file_iwv_pam, index_col=0, comment='#')
+    iwv_pam.loc['iwv', 'standard_atmosphere'] = 0
+    iwv_pam = iwv_pam[profiles]  # reorder cols
         
-    # colors for plot
-    colors = {'01004': 'b',
-              '10410': 'g',
-              '48698': 'r',
-              '78954': 'orange',
-              }
+    #plt.plot(iwv.values.flatten())
+    #plt.plot(iwv_pam.values.flatten())
+    
+    iwv = iwv_pam
     
     #%%
     # plot for delta_tb_freq_center
@@ -183,9 +223,6 @@ if __name__ == '__main__':
     axes[0, 1].set_title(r'$TB_{PAMTRA}$ at'+'\n'+r'$\nu_{center \pm \frac{1}{2} bandwidth}$', fontsize=8)
     axes[0, 2].set_title(r'$TB_{PAMTRA}$ at'+'\n'+r'$\nu_{center}$ and $\nu_{center \pm \frac{1}{2} bandwidth}$', fontsize=8)
     
-    c_list = [colors[profile[3:8]] for profile in profiles]
-    c_list.append('k')
-    
     for ax in axes.flatten():
         
         # x axis
@@ -203,7 +240,7 @@ if __name__ == '__main__':
         ax.axhline(y=0, color='k', linewidth=1, alpha=0.5)
         
         ax.set_ylim([-1.4, 1.4])
-        ax.set_xlim([0, 85])
+        ax.set_xlim([0, 75])
         
     # annotate channel name
     for i, ax in enumerate(axes[:, -1]):
