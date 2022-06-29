@@ -1,40 +1,90 @@
 
 
+import pandas as pd
 import numpy as np
-sys.path.append('/home/nrisse/uniHome/WHK/eumetsat/scripts')
-from mwi_183 import MWI183GHz as mwi
+import datetime
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import os
+import sys
+sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
+from mwi_info import mwi
+from importer import Radiosonde
+from radiosonde import wyo
+from path_setter import *
 
 
+"""
+Plot mean radiosonde profiles
+"""
 
-def plot_atmosphere(self):
-    """
-    Plot dropsonde profile
-    """
+class Standard_Atmosphere:
+    
+    def __init__(self):
+        
+        self.data = np.nan
+        
+    def read_data(self):
+        """
+        Read one profile each
+        """
+        
+        file_standard = path_data + 'atmosphere/standard_atmosphere.txt'
+        self.data = pd.read_csv(file_standard, delimiter=',', comment='#', 
+                                names=['z [m]', 'p [hPa]', 'T [K]', 'RH [%]'])
+        
 
-    fig = plt.figure(figsize=(9, 6))
+if __name__ == '__main__':
+    
+    # read one radiosonde profile and standard atmosphere
+    RS = Radiosonde()
+    RS.make_mean_profile()
+    St = Standard_Atmosphere()
+    St.read_data()
+    
+    #%% colors for plot
+    colors = {'01004': 'b',
+              '10410': 'g',
+              '48698': 'r',
+              '78954': 'orange',
+              '00000': 'k',
+              }
+    
+    #%% plot radiosonde mean profiles
+    fig, axes = plt.subplots(1, 2, figsize=(5, 4), sharey=True)
+    fig.suptitle('Atmospheric profiles (mean$\pm$sd)')
+    
+    # plot standard atmosphere
+    #axes[0].plot(St.data['T [K]']-273.15, St.data['p [hPa]'], color='k', label='Standard atmosphere')
+    #axes[1].plot(St.data['RH [%]'], St.data['p [hPa]'], color='k')
+        
+    for station_id in list(wyo.id_station.keys()):
+        
+        print(station_id)
+        
+        c = colors[station_id]
+        
+        for i, var in enumerate(['T [C]', 'RH [%]']):
+        
+            mean = RS.data[station_id]['mean'][var].values
+            sd = RS.data[station_id]['std'][var].values
+            
+            axes[i].plot(mean, RS.data['p [hPa]'], color=c, linewidth=1.5, label=wyo.id_station[station_id])
+            #axes[i].plot(mean+sd, RS.data['p [hPa]'], color=c, linewidth=0.5)
+            #axes[i].plot(mean-sd, RS.data['p [hPa]'], color=c, linewidth=0.5)
+            
+            axes[i].fill_betweenx(y=RS.data['p [hPa]'], x1=mean-sd, x2=mean+sd, color=c, alpha=0.2)
+        
+    axes[0].legend(bbox_to_anchor=(1.09, -0.2), ncol=3, loc='upper center', frameon=True, fontsize=8)
+    #axes[0].grid()
+    #axes[1].grid()
+    axes[0].set_ylim([np.max(RS.data['p [hPa]']), np.min(RS.data['p [hPa]'])])
+    axes[1].set_xlim([0, 100])
 
-    ax1 = fig.add_subplot(121)
-    ax1.invert_yaxis()
-    ax2 = fig.add_subplot(122, sharey=ax1)
-
-    for profile in self.profiles:
-
-        rs_df = self.read_profile(profile)
-
-        ax1.plot(rs_df['T [C]'], rs_df['p [hPa]'], pam_line_fmt[profile], label=pam_label_detail[profile])
-        ax2.plot(rs_df['RH [%]'], rs_df['p [hPa]'], pam_line_fmt[profile], label=pam_label_detail[profile])
-
-        ax1.set_ylabel('Pressure [hPa]')
-        ax1.set_xlabel('Temperature [°C]')
-        ax2.set_xlabel('Relative humidity [%]')
-
-        for ax in [ax1, ax2]:
-            ax.grid(True)
-            ax.set_ylim([1040, 0])
-
-        ax2.set_xlim([0, 100])
-
-    ax2.legend(bbox_to_anchor=(1.05, 0.5), loc='center left', frameon=False)
-    fig.tight_layout()
-
-    plt.savefig(self._path_fig + 'radiosonde_profiles.png', dpi=200)
+    axes[0].set_xlabel('Temperature [°C]')
+    axes[1].set_xlabel('Relative humidity [%]')
+    axes[0].set_ylabel('Pressure [hPa]')
+    
+    plt.subplots_adjust(right=0.95, bottom=0.25, top=0.9, left=0.15)
+    
+    plt.savefig(path_plot + 'radiosonde_profiles/mean_radiosonde_profiles_2019.png', dpi=300)

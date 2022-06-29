@@ -29,7 +29,7 @@ class Delta_TB:
         self.mean_freq_bw_center = np.nan
         self.std_freq_bw_center = np.nan
         
-    def read_data(self, file='/home/nrisse/uniHome/WHK/eumetsat/data/delta_tb/delta_tb.nc'):
+    def read_data(self, file=path_data+'/delta_tb/delta_tb.nc'):
         """
         Read data
         """

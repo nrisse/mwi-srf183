@@ -5,8 +5,10 @@ import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.dates as mdates
+import os
 import sys
-sys.path.append('/home/nrisse/uniHome/WHK/eumetsat/scripts')
+sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from importer import Sensitivity, Delta_TB
 from mwi_info import mwi
 from layout import colors, names
@@ -77,36 +79,53 @@ if __name__ == '__main__':
     print(text.format('Essen', np.sum(ix_2019 & ix_ess)/len_2019))
     print(text.format('Barbados', np.sum(ix_2019 & ix_bar)/len_2019))
     
-    #%% plot data availability
-    fig = plt.figure()
-    ax = fig.add_subplot(111, facecolor='red')
+    #%% PROOF plot data availability
+    fig = plt.figure(figsize=(5, 2))
+    ax = fig.add_subplot(111, facecolor='#2BB443')
+    ax.set_title('Data availability in 2019')
     dates = pd.date_range('2019-01-01', '2019-12-31', freq='1D')
-    df = pd.DataFrame(index=dates, data=0, columns=['nya', 'ess', 'bar', 'snp'])
+    df = pd.DataFrame(index=dates, data=1, columns=['nya', 'ess', 'bar', 'snp'])
     date_nya = [x.date() for x in date[ix_2019 & ix_nya]]
     date_ess = [x.date() for x in date[ix_2019 & ix_ess]]
     date_bar = [x.date() for x in date[ix_2019 & ix_bar]]
     date_snp = [x.date() for x in date[ix_2019 & ix_snp]]
     
     y1 = np.zeros(len(dates))
-    df.loc[date_nya, 'nya'] = 1
-    df.loc[date_ess, 'ess'] = 1
-    df.loc[date_snp, 'snp'] = 1
-    df.loc[date_bar, 'bar'] = 1
+    df.loc[date_nya, 'nya'] = 0
+    df.loc[date_ess, 'ess'] = 0
+    df.loc[date_snp, 'snp'] = 0
+    df.loc[date_bar, 'bar'] = 0
     
-    ax.fill_between(x=dates, y1=y1, y2=df.loc[:, 'nya'], step='mid', color='green')
-    ax.fill_between(x=dates, y1=y1-1, y2=df.loc[:, 'ess']-1, step='mid', color='green')
-    ax.fill_between(x=dates, y1=y1-2, y2=df.loc[:, 'snp']-2, step='mid', color='green')
-    ax.fill_between(x=dates, y1=y1-3, y2=df.loc[:, 'bar']-3, step='mid', color='green')
+    ax.fill_between(x=dates, y1=y1, y2=df.loc[:, 'nya'], step='mid', color='#EB3939')
+    ax.fill_between(x=dates, y1=y1-1, y2=df.loc[:, 'ess']-1, step='mid', color='#EB3939')
+    ax.fill_between(x=dates, y1=y1-2, y2=df.loc[:, 'snp']-2, step='mid', color='#EB3939')
+    ax.fill_between(x=dates, y1=y1-3, y2=df.loc[:, 'bar']-3, step='mid', color='#EB3939')
     
     ax.set_xlim([dates[0], dates[-1]])
     ax.set_ylim([-3, 1])
     
-    ax.axhline(y=0, color='#ffffff', linewidth=1)
-    ax.axhline(y=-1, color='#ffffff', linewidth=1)
-    ax.axhline(y=-2, color='#ffffff', linewidth=1)
+    ax.axhline(y=0, color='k', linewidth=1)
+    ax.axhline(y=-1, color='k', linewidth=1)
+    ax.axhline(y=-2, color='k', linewidth=1)
     
-    # remove ax fram
-    # savefigure and put to radiosonde slide
+    # tick for every month
+    months = mdates.MonthLocator()
+    months_fmt = mdates.DateFormatter('%m')
+    ax.xaxis.set_major_locator(months)
+    ax.xaxis.set_major_formatter(months_fmt)
+    
+    # remove y axis
+    ax.set_yticks([])
+    ax.set_xlabel('Month')
+
+    # annotate station
+    y = np.arange(0.5, -3, -1)
+    for i, name in enumerate(['Ny Alesund', 'Essen', 'Singapore', 'Barbados']):
+        ax.annotate(text=name, xy=(dates[0], y[i]), xycoords='data', ha='right', va='center')
+
+    plt.subplots_adjust(right=0.99, top=0.85, left=0.16, bottom=0.25)
+
+    plt.savefig(path_plot + 'radiosonde_profiles/data_availability.png', dpi=200)
     
     #%% slice data and store in dictionary
     seas = {}  # overall dataset for seasonal analysis
@@ -205,9 +224,9 @@ if __name__ == '__main__':
     seas['bw_center'] = bw_center # put bw_center in overall dataset
     
     #%%
-    freq_pos_label =  {'center': r'$TB_{PAMTRA}$ at'+'\n'+r'$\nu_{center}$',
-                       'bw': r'$TB_{PAMTRA}$ at'+'\n'+r'$\nu_{center \pm \frac{1}{2} bandwidth}$',
-                       'bw_center': r'$TB_{PAMTRA}$ at'+'\n'+r'$\nu_{center}$ and $\nu_{center \pm \frac{1}{2} bandwidth}$',
+    freq_pos_label =  {'center': r'$TB_{ref}$ at'+'\n'+r'$\nu_{center}$',
+                       'bw': r'$TB_{ref}$ at'+'\n'+r'$\nu_{center \pm \frac{1}{2} bandwidth}$',
+                       'bw_center': r'$TB_{ref}$ at'+'\n'+r'$\nu_{center}$ and $\nu_{center \pm \frac{1}{2} bandwidth}$',
                        }
     
     #%% Seasonal evaluation of Ny Alesund
@@ -231,20 +250,20 @@ if __name__ == '__main__':
     
             # NYA
             boxprops = dict(facecolor=seasons_col[i], color=seasons_col[i])
-            axes[0].boxplot(x=data['nya'][season].isel(noise_level=0, reduction_level=0), positions=mwi.channels_int + dx[i],
+            axes[0].boxplot(x=data['nya'][season].isel(noise_level=0, reduction_level=0).T, positions=mwi.channels_int + dx[i],
                             boxprops=boxprops, flierprops=flierprops, medianprops=medianprops, **kwargs)
             
             # ESS
             boxprops = dict(facecolor=seasons_col[i], color=seasons_col[i])
-            axes[1].boxplot(x=data['ess'][season].isel(noise_level=0, reduction_level=0), positions=mwi.channels_int + dx[i],
+            axes[1].boxplot(x=data['ess'][season].isel(noise_level=0, reduction_level=0).T, positions=mwi.channels_int + dx[i],
                             boxprops=boxprops, flierprops=flierprops, medianprops=medianprops, **kwargs)
             
             # SNP
             boxprops = dict(facecolor=seasons_col[i], color=seasons_col[i])
-            axes[2].boxplot(x=data['snp'][season].isel(noise_level=0, reduction_level=0), positions=mwi.channels_int + dx[i],
+            axes[2].boxplot(x=data['snp'][season].isel(noise_level=0, reduction_level=0).T, positions=mwi.channels_int + dx[i],
                             boxprops=boxprops, flierprops=flierprops, medianprops=medianprops, **kwargs)
             
-        axes[1].set_ylabel(r'$\Delta TB = TB_{MWI} - TB_{PAMTRA}$ [K]')
+        axes[1].set_ylabel(r'$\Delta TB = TB_{obs} - TB_{ref}$ [K]')
         
         # axis limits
         axes[-1].set_xlim([13.5, 18.5])
@@ -266,7 +285,7 @@ if __name__ == '__main__':
         #ax_top = axes[0].secondary_xaxis('top')
         #loc = np.sort(np.array([x+dx for x in mwi.channels_int]).flatten())
         #ax_top.set_xticks(loc)
-        #seasons_cap = [x.upper() for x in seasons]
+        seasons_cap = [x.upper() for x in seasons]
         #ax_top.set_xticklabels(seasons_cap*5, rotation=70)
         
         # vertical line for every month
@@ -290,165 +309,3 @@ if __name__ == '__main__':
         
         plt.savefig(path_plot + 'seasonal_dependency/seasonal_2019_freq_'+freq_pos+'.png', dpi=200)
         plt.close()
-    
-    #%%
-    
-    # todo: rewrite using the already calculated delta TB !!!
-    
-    # plot the tb simulation
-    pam_data_df = read_pamtra_simulation()
-    # for plot see plot_brightness_temperature.py
-
-    
-    # Plot result without noise
-
-    # join brightness temperature to the linear sensitivity dataframe
-    sens_mwi_dsb = self.join_pam_on_srf(pam=self.pam_data_df, srf=self.mwi_dsb_data_lino)
-
-    # create result for each of the modelled profiles
-    fig = plt.figure(figsize=(10, 5))
-    ax = fig.add_subplot(111)
-    ax.set_title(title)
-
-    for profile in profiles:
-
-        for i, ch in enumerate(mwi.channels_str):
-            tb_mwi = self.calculate_tb_mwi(tb=sens_mwi_dsb[profile].values,
-                                           srf=sens_mwi_dsb['ch' + ch + ' sensitivity'].values)
-            tb_pam = self.calculate_tb_pamtra(freqs=frequencies[i, :], profile=profile)
-
-            delta_tb = tb_mwi - tb_pam
-
-            ax.plot(mwi.channels_int[i], delta_tb, label=pam_label_detail[profile], **pam_point_fmt[profile])
-
-    ax.set_ylabel(r'$\Delta TB = TB_{MWI} - TB_{PAMTRA}$ [K]')
-    
-    # axis limits
-    ax.set_xlim([13.5, 18.5])
-    ax.set_ylim(ylim)
-
-    # axis tick settings
-    ax.set_xticks(np.arange(14, 19), minor=True)
-    ax.set_xticks(np.arange(13.5, 19.5), minor=False)
-    ax.set_xticklabels(mwi.freq_txt, minor=True)
-    ax.set_xticklabels('', minor=False)
-    ax.xaxis.grid(True, which='major')
-    ax.yaxis.grid(True)
-    ax.tick_params('x', length=0, width=0, which='minor')
-    
-    # add 0-line
-    ax.axhline(y=0, color='k', linestyle='--', linewidth=.75)
-    
-    # legend
-    handles, labels = ax.get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
-    ax.legend(by_label.values(), by_label.keys(), bbox_to_anchor=(1.05, 0.5), loc='center left', frameon=False)
-    
-    # layout
-    fig.tight_layout()
-    
-    plt.savefig(self._path_fig + filename, dpi=200)
-
-
-    #%% Plot result with noise as boxplot
-    # join brightness temperature to the linear sensitivity dataframe
-    sens_mwi_dsb = self.join_pam_on_srf(pam=self.pam_data_df, srf=self.mwi_dsb_data_lino)
-
-    # create noise shape=(n_freq, n_noise, len(mwi.channels_str))
-    srf_plus_noise = self.create_noise_values(dataframe=self.mwi_dsb_data_lino, std=std)
-
-    # create result for each of the modelled profiles
-    fig = plt.figure(figsize=(10, 5))
-    ax = fig.add_subplot(111)
-    ax.set_title(title)
-
-    dx = np.linspace(-0.3, 0.3, 7)  # space between boxplots
-
-    for p_id, profile in enumerate(profiles):
-
-        for i, ch in enumerate(mwi.channels_str):
-            tb_mwi = self.calculate_tb_mwi(tb=sens_mwi_dsb[profile].values,
-                                           srf=srf_plus_noise[:, :, i])
-            tb_pam = self.calculate_tb_pamtra(freqs=frequencies[i, :], profile=profile)
-
-            delta_tb = tb_mwi - tb_pam
-
-            boxprops = dict(facecolor=pam_colors[profile], color=pam_colors[profile])
-            flierprops = dict(markeredgecolor='k', markersize=2)
-            medianprops = dict(color='k')
-
-            ax.boxplot(x=delta_tb, notch=True, sym="d", positions=[mwi.channels_int[i] + dx[p_id]], widths=0.075,
-                       boxprops=boxprops, flierprops=flierprops, medianprops=medianprops, patch_artist=True)
-
-    ax.set_ylabel(r'$\Delta TB = TB_{MWI} - TB_{PAMTRA}$ [K]')
-
-    # axis limits
-    ax.set_ylim(ylim)
-    ax.set_xlim([13.5, 18.5])
-
-    ax.set_xticks(np.arange(14, 19), minor=True)
-    ax.set_xticks(np.arange(13.5, 19.5), minor=False)
-    ax.set_xticklabels(mwi.freq_txt, minor=True)
-    ax.set_xticklabels('', minor=False)
-    ax.xaxis.grid(True, which='major')
-    ax.yaxis.grid(True)
-    ax.tick_params('x', length=0, width=0, which='minor')
-
-    ax.axhline(y=0, color='k', linestyle='--', linewidth=.75)
-
-    # legend settings
-    patches = []
-    for profile in profiles:
-        patches.append(mpatches.Patch(color=pam_colors[profile], label=pam_label_detail[profile]))
-
-    ax.legend(handles=patches, bbox_to_anchor=(1.05, 0.5), loc='center left', frameon=False)
-
-    fig.tight_layout()
-
-    plt.savefig(self._path_fig + filename, dpi=400)
-
-
-
-    # RESULT 1 (MWI-RX183_DSB_Matlab.xlsx)
-    # TB PAMTRA is mean of upper and lower central frequency
-    title_res1 = 'MWI virtual measurement minus PAMTRA simulation at channel frequencies\nSensitivity data: ' \
-                 'MWI-RX183_DSB_Matlab.xlsx'
-    filename_res1 = 'result_1_MWI-RX183_DSB_Matlab.png'
-    self.plot_result(frequencies=mwi.freq_center, filename=filename_res1, title=title_res1, ylim=[-0.6, 0.2])
-
-    # RESULT 4 (MWI-RX183_DSB_Matlab.xlsx)
-    # TB PAMTRA is mean of the four frequencies at the edge of the bandwidth
-    title_res4 = 'MWI virtual measurement minus PAMTRA simulation at channel bandwith edges\nSensitivity data: ' + \
-                 'MWI-RX183_DSB_Matlab.xlsx'
-    filename_res4 = 'result_4_MWI-RX183_DSB_Matlab.png'
-    self.plot_result(frequencies=mwi.freq_bw, filename=filename_res4, title=title_res4, ylim=[-0.1, 0.8])
-
-    # RESULT 5 (MWI-RX183_DSB_Matlab.xlsx)
-    # TB PAMTRA is mean of the four frequencies at the edge of the bandwidth
-    title_res4 = 'MWI virtual measurement minus PAMTRA simulation at channel bandwith edges and center ' \
-                 'frequency\nSensitivity data: MWI-RX183_DSB_Matlab.xlsx'
-    filename_res4 = 'result_5_MWI-RX183_DSB_Matlab.png'
-    self.plot_result(frequencies=mwi.freq_bw_center, filename=filename_res4, title=title_res4, ylim=[-0.1, 0.8])
-
-    # result with perturbation of varying standard deviation
-    standard_deviations = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) / 100
-
-    for std in standard_deviations:
-
-        title_res1b = 'MWI virtual measurement minus PAMTRA simulation at channel frequencies\n' \
-                      'Sensitivity data: 1000 perturbed measurements (MWI-RX183_DSB_Matlab.xlsx)'
-        filename_res1b = 'result_1B_'+str(std)+'_MWI-RX183_DSB_Matlab.png'
-        self.plot_result_noise(frequencies=mwi.freq_center, std=std, filename=filename_res1b, title=title_res1b,
-                               ylim=[-1, 1])
-
-        title_res4b = 'MWI virtual measurement minus PAMTRA simulation at channel bandwith edges\n' \
-                      'Sensitivity data: 1000 perturbed measurements (MWI-RX183_DSB_Matlab.xlsx)'
-        filename_res4b = 'result_4B_'+str(std)+'_MWI-RX183_DSB_Matlab.png'
-        self.plot_result_noise(frequencies=mwi.freq_bw, std=std, filename=filename_res4b, title=title_res4b,
-                               ylim=[-1, 1])
-
-        title_res5b = 'MWI virtual measurement minus PAMTRA simulation at channel bandwith edges\n' \
-                      'Sensitivity data: 1000 perturbed measurements (MWI-RX183_DSB_Matlab.xlsx)'
-        filename_res5b = 'result_5B_'+str(std)+'_MWI-RX183_DSB_Matlab.png'
-        self.plot_result_noise(frequencies=mwi.freq_bw_center, std=std, filename=filename_res5b, title=title_res5b,
-                               ylim=[-1, 1])

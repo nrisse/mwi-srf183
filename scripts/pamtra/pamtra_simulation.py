@@ -4,6 +4,8 @@ import numpy as np
 import os
 import pandas as pd
 from glob import glob
+from netCDF4 import Dataset
+import datetime
 
 os.environ['OPENBLAS_NUM_THREADS'] = "1"
 os.environ['PAMTRA_DATADIR'] = ""
@@ -68,9 +70,9 @@ def run_pamtra(freqs, atmosphere='standard'):
     pam.runParallelPamtra(freqs, pp_deltaX=1, pp_deltaY=1, pp_deltaF=1, pp_local_workers="auto")
 
     # mean over both polarizations
-    TB_mod = pam.r['tb'][0, 0, 0, 0, :, 0]  # only vertical polarization, height 833 km
+    TB_mod = pam.r['tb'][0, 0, 0, :, :, 0]  # only vertical polarization, height 833 km
 
-    return TB_mod
+    return TB_mod, pam
 
 
 def calculate_iwv(file):
@@ -160,29 +162,32 @@ def main():
     
 def main_all_data():
 
-    base_dir_out = '/home/nrisse/WHK/eumetsat/data/brightness_temperature/'
+    file_out = '/home/nrisse/WHK/eumetsat/data/brightness_temperature/TB_radiosondes_2019.nc'
     
     # read data
     folder_atmos = '/home/nrisse/WHK/eumetsat/data/atmosphere/'
-    files = []
-    for month in range(8, 9):
-        mm = str(month).zfill(2)
-        files.append(glob(folder_atmos+'2019/'+mm+'/*/*.txt'))
-
-    files = [f for sublist in files for f in sublist]
-
+    files = glob(folder_atmos+'2019/*/*/*.txt')
+    
+    print(files)
+    
+    profile_names = np.array([x[-25:-4] for x in files])
+    
     # read frequencies
     freqs_pamtra = np.loadtxt('/home/nrisse/WHK/eumetsat/data/frequencies.txt')
+    
+    # resulting tb
+    n_angles = 32
+    n_profiles = len(profile_names)
+    tb = np.zeros(shape=(n_profiles, n_angles, len(freqs_pamtra)))  # resulting TB from Pamtra
+    
+    n_split = 5
     
     # simulate each of the atmospheric profiles
     for i_atm, atmosphere in enumerate(files):
         
         print('Simulating with the atmosphere {}/{}: {}'.format(i_atm+1, len(files), atmosphere))
-    
-        # model always a selection of frequencies
-        n_split = 5  # number of splits of whole frequency array
-        f_arr = np.array([])  # current frequencies
-        tb_arr = np.array([])  # resulting TB from Pamtra
+        
+        j = 0
         
         for i_split in range(0, n_split):
             
@@ -191,32 +196,35 @@ def main_all_data():
             # divide freqs into smaller arrays and get the current subsection
             f = np.array_split(freqs_pamtra, n_split)[i_split]
             
+            i = j
+            j += len(f)
+            
             # run pamtra
-            tb = run_pamtra(freqs=f, atmosphere=atmosphere)
-            
-            tb_arr = np.append(tb_arr, tb)
-            f_arr = np.append(f_arr, f)
-            
-        # create pandas data frame of result
-        data = pd.DataFrame(columns=['Frequency [GHz]', 'TB'], data=np.array([f_arr, tb_arr]).T)
+            tb[i_atm, :,  i:j], pam = run_pamtra(freqs=f, atmosphere=atmosphere)
+
+    with Dataset(file_out, 'w', format='NETCDF4') as rootgrp:
         
-        # write result of profile to file
-        with open(atmosphere) as f:
-            header = f.readline()
+        # global attributes
+        rootgrp.author = "Nils Risse"
+        rootgrp.history = "created: {}".format(datetime.datetime.now().date().strftime('%Y-%m-%d'))
         
-        path_structure = atmosphere[-36:-25]  # YYYY/MM/DD/
-        folder = base_dir_out + path_structure
+        # create dimension
+        rootgrp.createDimension(dimname='profile', size=tb.shape[0])
+        rootgrp.createDimension(dimname='angle', size=tb.shape[1])
+        rootgrp.createDimension(dimname='frequency', size=tb.shape[2])
         
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+        # write variables
+        var_profile = rootgrp.createVariable(varname='profile', datatype=np.str, dimensions=('profile',))
+        var_profile[:] = profile_names
         
-        file = 'TB_PAMTRA_' + atmosphere[-25:]  # YYYYMMDDHHMM.txt
+        var_angle = rootgrp.createVariable(varname='angle', datatype='f', dimensions=('angle',))
+        var_angle[:] = pam.r['angles_deg']
         
-        print('Writing file: {}'.format(folder+file))
+        var_frequency = rootgrp.createVariable(varname='frequency', datatype='f', dimensions=('frequency',))
+        var_frequency[:] = freqs_pamtra
         
-        with open(folder+file, 'w') as f:
-            f.write(header)
-            data.to_csv(f, index=False)
+        var_tb = rootgrp.createVariable(varname='tb', datatype='f', dimensions=('profile', 'angle', 'frequency',))
+        var_tb[:] = tb
 
 
 def main_standard_atmosphere():
@@ -267,8 +275,8 @@ def iwv_of_all_profiles():
     files = []
     for month in range(1, 13):
         mm = str(month).zfill(2)
-        files.append(glob(folder_atmos+'20*/'+mm+'/*/*.txt'))
-
+        files.append(glob(folder_atmos+'2019/'+mm+'/*/*.txt'))
+    
     files = [f for sublist in files for f in sublist]
     filenames = [f[-25:-4] for f in files]
     
@@ -285,12 +293,12 @@ def iwv_of_all_profiles():
         f.write('# Integrated water vaport calculated with PAMTRA\n')
         iwv_df.to_csv(f)
     
-
+    
 if __name__ == '__main__':
 
-    #main_all_data()
+    main_all_data()
     #main_standard_atmosphere()
     
     # calculate iwv of all files
-    iwv_of_all_profiles()
+    #iwv_of_all_profiles()
     

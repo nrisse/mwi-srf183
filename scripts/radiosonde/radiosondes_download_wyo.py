@@ -62,7 +62,7 @@ if __name__ == '__main__':
             
                 data = pd.read_fwf(StringIO(data_str), skiprows=5, header=None, names=colnames)
                 
-                folder = '/home/nrisse/uniHome/WHK/eumetsat/data/atmosphere/'+year+'/'+month+'/'+day+'/'
+                folder = path_data+'atmosphere/'+year+'/'+month+'/'+day+'/'
                 file = 'ID_'+station_id[station]+'_'+date_file+'.txt'
                 
                 if not os.path.exists(folder):

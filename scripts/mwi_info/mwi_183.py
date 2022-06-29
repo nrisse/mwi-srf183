@@ -33,7 +33,8 @@ class MWI183GHz:
     freq_center_18 = np.array([absorpt_line - abs_dist[4], absorpt_line + abs_dist[4]])
 
     freq_center = np.array([freq_center_14, freq_center_15, freq_center_16, freq_center_17, freq_center_18])
-
+    freq_center_MHz = np.array(freq_center*1e3, dtype=np.int)
+    
     # bandwidth frequencies of channels (4 frequencies a)
     freq_bw_14 = np.array([absorpt_line - abs_dist[0] - .5 * bandwidth[0], absorpt_line - abs_dist[0] + .5 * bandwidth[0],
                            absorpt_line + abs_dist[0] - .5 * bandwidth[0], absorpt_line + abs_dist[0] + .5 * bandwidth[0]])
@@ -47,9 +48,14 @@ class MWI183GHz:
                            absorpt_line + abs_dist[4] - .5 * bandwidth[4], absorpt_line + abs_dist[4] + .5 * bandwidth[4]])
 
     freq_bw = np.array([freq_bw_14, freq_bw_15, freq_bw_16, freq_bw_17, freq_bw_18])
-
+    freq_bw_MHz = np.array(freq_bw*1e3, dtype=np.int)
+    
     # bandwidth and center frequency
     freq_bw_center = np.append(freq_center, freq_bw, axis=1)
+    freq_bw_center_MHz = np.array(freq_bw_center*1e3, dtype=np.int)
+    
+    # frequencies at half bandwidth (only with SRF data)
+    
 
     @staticmethod
     def print_info():

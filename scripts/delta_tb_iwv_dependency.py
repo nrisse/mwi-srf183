@@ -2,226 +2,94 @@
 
 import pandas as pd
 import numpy as np
+import datetime
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import xarray as xr
+import os
 import sys
-sys.path.append('/home/nrisse/uniHome/WHK/eumetsat/scripts')
-from mwi_183 import MWI183GHz as mwi
-from importer import Radiosonde
-import radiosondes_download_wyo as wio
+sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
+from mwi_info import mwi
+from importer import Delta_TB, IWV
+from radiosonde import wyo
+from path_setter import *
+
 
 """
 DESCRIPTION
 
-Evaluation of delta_tb depending on the LWP of the profiles
+Evaluation of delta_tb depending on the IWV of the profiles
 
+PROOF
 """
-
-
-def calculate_iwv(z, T, p, r):
-    """
-    Calculate IWV of profile
-    
-    z   height in m
-    T   temperature in C
-    p   pressure in hPa
-    r   water vapor mixing ratio in g/kg
-    """
-    
-    Rd = 287  # J / kg K
-    
-    T = T + 273.15  # K
-    p = p * 100  # Pa
-    r = r * 1e-3  # kg/kg
-    
-    # density of water vapor [kg/m3]
-    rho_v = p / (Rd * T) * r / (1 - 1.608 * r)
-    
-    # integrated water vapor [kg/m2]
-    dz = z[1:] - z[:-1]
-    iwv = np.nansum(rho_v[:-1] * dz)
-    
-    return iwv
-
-
-def rh_to_iwv(relhum_lev, temp_lev, press_lev, hgt_lev):
-    '''
-    Calculate the integrated water vapour
-
-    Input:
-    T is in K
-    rh is in Pa/Pa
-    p is in Pa
-    z is in m
-
-    Output
-    iwv in kg/m^2
-    '''
-    dz = np.diff(hgt_lev, axis=-1)
-    relhum = (relhum_lev[..., 0:-1] + relhum_lev[..., 1:])/2.
-    temp = (temp_lev[..., 0:-1] + temp_lev[..., 1:])/2.
-
-    xp = -1.*np.log(press_lev[..., 1:]/press_lev[..., 0:-1])/dz
-    press = -1.*press_lev[..., 0:-1]/xp*(exp(-xp*dz)-1.)/dz
-
-    q = meteoSI.rh2q(relhum, temp, press)
-    rho_moist = meteoSI.moist_rho_q(press, temp, q)
-
-    return np.sum(q*rho_moist*dz)
-
 
 
 if __name__ == '__main__':
     
-    # todo: get only 2019 profiles here and add the year to header
-    # todo: include data availability within that year for every profile
+    #%% figure paths
+    fig_freq_center = path_plot + 'iwv_dependency/iwv_dependency_freq_center.png'
+    fig_freq_bw = path_plot + 'iwv_dependency/iwv_dependency_freq_bw.png'
+    fig_freq_bw_center = path_plot + 'iwv_dependency/iwv_dependency_freq_bw_center.png'
+    fig_all = path_plot + 'iwv_dependency/iwv_dependency_all.png'
     
-    path_base = '/home/nrisse/uniHome/WHK/eumetsat/'
+    #%% Read IWV and delta_TB data
+    # read nc files
+    # delta_tb shape: (channel, profile, noise_level, reduction_level)
+    # delta_tb.mean_freq_center
+    # delta_tb.std_freq_center
+    # delta_tb.mean_freq_bw
+    # delta_tb.std_freq_bw
+    # delta_tb.mean_freq_bw_center
+    # delta_tb.std_freq_bw_center
+    #delta_tb = Delta_TB()
+    #delta_tb.read_data()
+    delta_tb = xr.load_dataset(path_data+'delta_tb/delta_tb.nc')
     
-    file_iwv = path_base + 'data/iwv/iwv.txt'
-    file_iwv_pam = path_base + 'data/iwv/iwv_pamtra.txt'
-    file_freq_center = path_base + 'data/delta_tb/' + 'delta_tb_freq_center.txt'
-    file_freq_bw = path_base + 'data/delta_tb/' + 'delta_tb_freq_bw.txt'
-    file_freq_bw_center = path_base + 'data/delta_tb/' + 'delta_tb_freq_bw_center.txt'
+    iwv = IWV()
+    iwv.read_data()
+    iwv.data = iwv.data.sel(profile=delta_tb.profile)  # reorder iwv data based on delta_tb profile order
     
-    # figures
-    fig_freq_center = path_base + 'plots/iwv_dependency/iwv_dependency_freq_center.png'
-    fig_freq_bw = path_base + 'plots/iwv_dependency/iwv_dependency_freq_bw.png'
-    fig_freq_bw_center = path_base + 'plots/iwv_dependency/iwv_dependency_freq_bw_center.png'
+    #%% get only 2019 profiles
+    station_id = np.array([x[3:8] for x in delta_tb.profile.values])
+    date = np.array([datetime.datetime.strptime(x[-12:], '%Y%m%d%H%M') for x in delta_tb.profile.values])
+    year = np.array([x.year for x in date])
+    ix_2019 = year == 2019
     
-    fig_all = path_base + 'plots/iwv_dependency/iwv_dependency_all.png'
+    # station index
+    ix_nya = station_id == wyo.station_id['Ny Alesund']
+    ix_snp = station_id == wyo.station_id['Singapore']
+    ix_ess = station_id == wyo.station_id['Essen']
+    ix_bar = station_id == wyo.station_id['Barbados']
+    ix_std = station_id == '00000'
     
-    # read delta_tb from file
-    delta_tb_freq_center = pd.read_csv(file_freq_center, sep=',', comment='#', index_col=0)
-    delta_tb_freq_bw = pd.read_csv(file_freq_bw, sep=',', comment='#', index_col=0)
-    delta_tb_freq_bw_center = pd.read_csv(file_freq_bw_center, sep=',', comment='#', index_col=0)
-        
-    # colors for plot
+    # no noise, no data reduction
+    ix_noise_lev_0 = delta_tb.noise_level == 0
+    ix_red_lev_1 = delta_tb.reduction_level == 1
+    
+    # get data for 2019
+    delta_tb_freq_center = delta_tb.delta_tb_mean_freq_center.isel(noise_level=0, reduction_level=0)  # 2019
+    delta_tb_freq_bw = delta_tb.delta_tb_mean_freq_bw[:, ix_2019, ix_noise_lev_0, ix_red_lev_1].isel(noise_level=0, reduction_level=0)  # 2019
+    delta_tb_freq_bw_center = delta_tb.delta_tb_mean_freq_bw_center[:, ix_2019, ix_noise_lev_0, ix_red_lev_1].isel(noise_level=0, reduction_level=0)  # 2019
+    iwv_data = iwv.data[ix_2019]
+
+    #%% colors for plot
     colors = {'01004': 'b',
               '10410': 'g',
               '48698': 'r',
               '78954': 'orange',
-              'ndard': 'k',
               }
     
-    profiles = delta_tb_freq_center.columns
-    c_list = [colors[profile[3:8]] for profile in profiles]
-    
-    #%%
-    # calculate iwv of radiosonde profiles
-    RS = Radiosonde()
-    
-    iwv = pd.DataFrame(columns=delta_tb_freq_center.columns, data=np.nan, index=['iwv'])
-    
-    iwv.loc['iwv', 'standard_atmosphere'] = 0
-    
-    for i, profile in enumerate(profiles):
-        
-        print('profile {}/{}'.format(i, len(profiles)))
-        
-        station_id = profile[3:8]
-        year = profile[9:13]
-        month = profile[13:15]
-        day = profile[15:17]
-        
-        RS.read_profile(station_id=station_id, year=year, month=month, day=day)
-        
-        iwv.loc['iwv', profile] = calculate_iwv(z=RS.profile['z [m]'].values, T=RS.profile['T [C]'].values, 
-                                                p=RS.profile['p [hPa]'].values, r=RS.profile['r [g/kg]'].values)
-    
-    # save iwv to file
-    iwv.to_csv(file_iwv, sep=',')
-    
-    #%%
-    # read iwv from file
-    iwv = pd.read_csv(file_iwv, index_col=0)
-    iwv = iwv[profiles]  # reorder cols
-    
-    iwv_pam = pd.read_csv(file_iwv_pam, index_col=0, comment='#')
-    iwv_pam.loc['iwv', 'standard_atmosphere'] = 0
-    iwv_pam = iwv_pam[profiles]  # reorder cols
-        
-    #plt.plot(iwv.values.flatten())
-    #plt.plot(iwv_pam.values.flatten())
-    
-    iwv = iwv_pam
-    
-    #%%
-    # plot for delta_tb_freq_center
-    fig, axes = plt.subplots(5, 1, figsize=(6, 6), sharex=True, sharey=True)
-    fig.suptitle('Deviation of virtual MWI measurement from TB calculated at central channel frequencies\n' +
-                 'as function of integrated water vapor')
-    
-    axes[2].set_ylabel('$\Delta TB$')
-    axes[-1].set_xlabel('Integrated water vapor [kg m$^{-2}$]')
-    
-    for i, ax in enumerate(axes):
-        
-        ax.scatter(iwv.loc['iwv', 'standard_atmosphere'], delta_tb_freq_center.loc[14+i, 'standard_atmosphere'], color='k')
-        
-        for profile in colors.keys():
-            
-            ix = [x[3:8] == profile for x in profiles]
-            ix.append(False)
-            
-            ax.scatter(iwv.loc['iwv', ix], delta_tb_freq_center.loc[14+i, ix], color=colors[profile[:8]], edgecolor=None, alpha=0.5)
-   
-   plt.savefig(fig_freq_center) 
-   
-    #%%
-    # plot for delta_tb_freq_bw
-    fig, axes = plt.subplots(5, 1, figsize=(6, 6), sharex=True, sharey=True)
-    fig.suptitle('Deviation of virtual MWI measurement from TB calculated at channel bandwidth edge frequencies\n' +
-                 'as function of integrated water vapor')
+    c_list = [colors[p[3:8]] for p in iwv_data.profile.values]
 
-    axes[2].set_ylabel('$\Delta TB$')
-    axes[-1].set_xlabel('Integrated water vapor [kg m$^{-2}$]')
-    
-    for i, ax in enumerate(axes):
-        
-        ax.scatter(iwv.loc['iwv', 'standard_atmosphere'], delta_tb_freq_bw.loc[14+i, 'standard_atmosphere'], color='k')
-        
-        for profile in colors.keys():
-            
-            ix = [x[3:8] == profile for x in profiles]
-            ix.append(False)
-            
-            ax.scatter(iwv.loc['iwv', ix], delta_tb_freq_bw.loc[14+i, ix], color=colors[profile[:8]], edgecolor=None, alpha=0.5)
-   
-   plt.savefig(fig_freq_bw)
-   
-    #%%
-    # plot for delta_tb_freq_bw_center
-    fig, axes = plt.subplots(5, 1, figsize=(6, 6), sharex=True, sharey=True)
-    fig.suptitle('Deviation of virtual MWI measurement from TB calculated at channel bandwidth edge and central frequencies\n' +
-                 'as function of integrated water vapor')
-    
-    axes[2].set_ylabel('$\Delta TB$')
-    axes[-1].set_xlabel('Integrated water vapor [kg m$^{-2}$]')
-    
-    for i, ax in enumerate(axes):
-        
-        ax.scatter(iwv.loc['iwv', 'standard_atmosphere'], delta_tb_freq_bw_center.loc[14+i, 'standard_atmosphere'], color='k')
-        
-        for profile in colors.keys():
-            
-            ix = [x[3:8] == profile for x in profiles]
-            ix.append(False)
-            
-            ax.scatter(iwv.loc['iwv', ix], delta_tb_freq_bw_center.loc[14+i, ix], color=colors[profile[:8]], edgecolor=None, alpha=0.5)
-   
-   plt.savefig(fig_freq_bw_center)
-
-    #%% ALL IN ONE
+    #%% PROOF all in one
     fig, axes = plt.subplots(5, 3, figsize=(6, 8), sharex=True, sharey=True)
-    fig.suptitle('Deviation as function of integrated water vapor\nAtmosphere from daily 12 UTC radiosonde observations in 2019')
     
-    axes[2, 0].set_ylabel(r'$\Delta TB = TB_{MWI} - TB_{PAMTRA}$ [K]')
+    axes[2, 0].set_ylabel(r'$\Delta TB = TB_{obs} - TB_{ref}$ [K]')
     axes[-1, 1].set_xlabel('Integrated water vapor [kg m$^{-2}$]')
     
-    axes[0, 0].set_title(r'$TB_{PAMTRA}$ at'+'\n'+r'$\nu_{center}$', fontsize=8)
-    axes[0, 1].set_title(r'$TB_{PAMTRA}$ at'+'\n'+r'$\nu_{center \pm \frac{1}{2} bandwidth}$', fontsize=8)
-    axes[0, 2].set_title(r'$TB_{PAMTRA}$ at'+'\n'+r'$\nu_{center}$ and $\nu_{center \pm \frac{1}{2} bandwidth}$', fontsize=8)
+    axes[0, 0].set_title(r'$TB_{ref}$ at'+'\n'+r'$\nu_{center}$', fontsize=8)
+    axes[0, 1].set_title(r'$TB_{ref}$ at'+'\n'+r'$\nu_{center \pm \frac{1}{2} bandwidth}$', fontsize=8)
+    axes[0, 2].set_title(r'$TB_{ref}$ at'+'\n'+r'$\nu_{center}$ and $\nu_{center \pm \frac{1}{2} bandwidth}$', fontsize=8)
     
     for ax in axes.flatten():
         
@@ -247,25 +115,18 @@ if __name__ == '__main__':
         ax.annotate(text=mwi.freq_txt[i], xy=(1.1, 0.5), xycoords='axes fraction', backgroundcolor="w",
                     annotation_clip=False, horizontalalignment='left', verticalalignment='center', fontsize=8)
     
-    for i, ax in enumerate(axes[:, 0]):
-        ax.scatter(iwv.loc['iwv', :], delta_tb_freq_center.loc[14+i, :], s=2, c=c_list, linewidths=0, alpha=0.5)
-    
-    for i, ax in enumerate(axes[:, 1]):
-        
-        ax.scatter(iwv.loc['iwv', :], delta_tb_freq_bw.loc[14+i, :], s=2, c=c_list, linewidths=0, alpha=0.5)
-    
-    for i, ax in enumerate(axes[:, 2]):
-        
-        ax.scatter(iwv.loc['iwv', :], delta_tb_freq_bw_center.loc[14+i, :], s=2, c=c_list, linewidths=0, alpha=0.5)
+    for i, channel in enumerate(mwi.channels_str):
+        axes[i, 0].scatter(iwv_data, delta_tb_freq_center.sel(channel=channel), s=2, c=c_list, linewidths=0, alpha=0.5)
+        axes[i, 1].scatter(iwv_data, delta_tb_freq_bw.sel(channel=channel), s=2, c=c_list, linewidths=0, alpha=0.5)
+        axes[i, 2].scatter(iwv_data, delta_tb_freq_bw_center.sel(channel=channel), s=2, c=c_list, linewidths=0, alpha=0.5)
     
     fig.tight_layout()
 
     # legend below
     patches = []
-    stations = wio.station_id.keys()
+    stations = wyo.station_id.keys()
     for station in stations:
-        patches.append(mpatches.Patch(color=colors[wio.station_id[station]], label=station))
-    patches.append(mpatches.Patch(color='k', label='Standard atm.'))
+        patches.append(mpatches.Patch(color=colors[wyo.station_id[station]], label=station))
     leg = axes[-1, -1].legend(handles=patches, bbox_to_anchor=(1.05, 0.2), loc='upper left', frameon=False, ncol=1, fontsize=6, title='Radiosonde location:')
     plt.setp(leg.get_title(),fontsize=6)
     

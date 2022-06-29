@@ -1,9 +1,9 @@
 
 
 import numpy as np
+import os
 import sys
-sys.path.append('/home/nrisse/uniHome/WHK/eumetsat/scripts')
-
+sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from importer import Sensitivity
 from mwi_info import mwi
 from path_setter import *

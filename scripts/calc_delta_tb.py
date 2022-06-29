@@ -1,18 +1,18 @@
 
 
 import numpy as np
-import sys
 import re
 import pandas as pd
 import matplotlib.pyplot as plt
 from netCDF4 import Dataset
 import datetime
-
-sys.path.append('/home/nrisse/uniHome/WHK/eumetsat/scripts')
-
+import xarray as xr
+import os
+import sys
+sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from path_setter import *
 from importer import Sensitivity
-from plot_brightness_temperature import PAMTRA_TB
+from importer import PAMTRA_TB
 from mwi_info import mwi
 
 
@@ -113,23 +113,35 @@ def create_noise_values(data_lino, std=0.1, n=1000):
     return srf_plus_noise
 
 
-
 if __name__ == '__main__':
     
+    ### CHANGE !!!
+    era5 = False
+    ###
+    
+    if not era5:
+        filename_out = 'delta_tb.nc'
+    else:
+        filename_out = 'delta_tb_era5.nc'
+    
     # read bandpass measurement
-    sen_dsb = Sensitivity(path=path_sens, filename='MWI-RX183_DSB_Matlab.xlsx')
+    sen_dsb = Sensitivity(path=path_data + 'sensitivity/', filename='MWI-RX183_DSB_Matlab.xlsx')
 
     # read pamtra simulations
-    Pam = PAMTRA_TB()
-    Pam.read_all()
-    Pam.pam_data_df
+    #Pam = PAMTRA_TB()
+    #Pam.read_all(era5=era5)
+    #Pam.pam_data_df
+    file = path_data + 'brightness_temperature/TB_radiosondes_2019.nc'
+    pam = xr.load_dataset(file).isel(angle=9)
+    pam_data_df = pd.DataFrame(columns=pam.profile.values, data=pam.tb.values.T)
+    pam_data_df['frequency [GHz]'] = pam.frequency.values
     
     # combine spectral response function and modelled brightness temperature
-    pam_srf = join_pam_on_srf(pam=Pam.pam_data_df, srf=sen_dsb.data_lino)
+    pam_srf = join_pam_on_srf(pam=pam_data_df, srf=sen_dsb.data_lino)
     
     # write data to arrays for calculation of vierual MWI TB
-    profiles = np.array(pam_srf.columns[1:-5], dtype=str)
-    tb = pam_srf.iloc[:, 1:-5]  
+    profiles = pam.profile.values
+    tb = pam_srf.iloc[:, :-6]
     srf = pam_srf.iloc[:, -5:]
     
     # noise levels added on the bandpass measurement
@@ -138,6 +150,22 @@ if __name__ == '__main__':
     # reduction of number of measurements
     reduction_levels = np.arange(1, 6, 1)  # every, only every second, only every third, only every fourth, only ever fifth
     
+    # get index of mwi frequencies
+    ix_freq_center = np.zeros(shape=mwi.freq_center.shape, dtype=int)
+    for i in range(mwi.freq_center.shape[0]):
+        for j in range(mwi.freq_center.shape[1]):
+            ix_freq_center[i, j] = int(np.where(np.array(np.round(pam.frequency.values*1000, 0), dtype=int) == int(np.round(mwi.freq_center[i, j]*1000, 0)))[0])
+    
+    ix_freq_bw = np.zeros(shape=mwi.freq_bw.shape, dtype=int)
+    for i in range(mwi.freq_bw.shape[0]):
+        for j in range(mwi.freq_bw.shape[1]):
+            ix_freq_bw[i, j] = int(np.where(np.array(np.round(pam.frequency.values*1000, 0), dtype=int) == int(np.round(mwi.freq_bw[i, j]*1000, 0)))[0])
+    
+    ix_freq_bw_center = np.zeros(shape=mwi.freq_bw_center.shape, dtype=int)
+    for i in range(mwi.freq_bw_center.shape[0]):
+        for j in range(mwi.freq_bw_center.shape[1]):
+            ix_freq_bw_center[i, j] = int(np.where(np.array(np.round(pam.frequency.values*1000, 0), dtype=int) == int(np.round(mwi.freq_bw_center[i, j]*1000, 0)))[0])
+    
     # dimensions
     n_channels = len(mwi.channels_str)
     n_profiles = len(profiles)
@@ -145,12 +173,12 @@ if __name__ == '__main__':
     n_reduction_levels = len(reduction_levels)
     
     # create six output datasets
-    delta_tb_mean_freq_center = np.full(shape=(n_channels, n_profiles, n_noise_levels, n_reduction_levels), fill_value=-999, dtype=np.float)
-    delta_tb_std_freq_center = np.full(shape=(n_channels, n_profiles, n_noise_levels, n_reduction_levels), fill_value=-999, dtype=np.float)
-    delta_tb_mean_freq_bw = np.full(shape=(n_channels, n_profiles, n_noise_levels, n_reduction_levels), fill_value=-999, dtype=np.float)
-    delta_tb_std_freq_bw = np.full(shape=(n_channels, n_profiles, n_noise_levels, n_reduction_levels), fill_value=-999, dtype=np.float)
-    delta_tb_mean_freq_bw_center = np.full(shape=(n_channels, n_profiles, n_noise_levels, n_reduction_levels), fill_value=-999, dtype=np.float)
-    delta_tb_std_freq_bw_center = np.full(shape=(n_channels, n_profiles, n_noise_levels, n_reduction_levels), fill_value=-999, dtype=np.float)
+    delta_tb_mean_freq_center = np.full(shape=(n_channels, n_profiles, n_noise_levels, n_reduction_levels), fill_value=-999., dtype=np.float)
+    delta_tb_std_freq_center = np.full(shape=(n_channels, n_profiles, n_noise_levels, n_reduction_levels), fill_value=-999., dtype=np.float)
+    delta_tb_mean_freq_bw = np.full(shape=(n_channels, n_profiles, n_noise_levels, n_reduction_levels), fill_value=-999., dtype=np.float)
+    delta_tb_std_freq_bw = np.full(shape=(n_channels, n_profiles, n_noise_levels, n_reduction_levels), fill_value=-999., dtype=np.float)
+    delta_tb_mean_freq_bw_center = np.full(shape=(n_channels, n_profiles, n_noise_levels, n_reduction_levels), fill_value=-999., dtype=np.float)
+    delta_tb_std_freq_bw_center = np.full(shape=(n_channels, n_profiles, n_noise_levels, n_reduction_levels), fill_value=-999., dtype=np.float)
     
     for l, reduction_level in enumerate(reduction_levels):
         
@@ -177,25 +205,28 @@ if __name__ == '__main__':
                                               )
                     
                     # freq_center
-                    tb_pam = calculate_tb_pamtra(tb=Pam.pam_data_df, avg_freq=mwi.freq_center[i, :], profile=profile)  # (scalar)
+                    tb_pam = pam.tb.isel(profile=j, frequency=ix_freq_center[i, :]).mean('frequency').values  # (scalar)
+                    #tb_pam = calculate_tb_pamtra(tb=pam_data_df, avg_freq=mwi.freq_center[i, :], profile=profile)  # (scalar)
                     delta_tb = tb_mwi - tb_pam   # (noise,)
                     delta_tb_mean_freq_center[i, j, k, l] = np.mean(delta_tb)  # (scalar)
                     delta_tb_std_freq_center[i, j, k, l] = np.std(delta_tb)  # (scalar)
                     
                     # freq_bw
-                    tb_pam = calculate_tb_pamtra(tb=Pam.pam_data_df, avg_freq=mwi.freq_bw[i, :], profile=profile)  # (scalar)
+                    tb_pam = pam.tb.isel(profile=j, frequency=ix_freq_bw[i, :]).mean('frequency').values  # (scalar)
+                    #tb_pam = calculate_tb_pamtra(tb=pam_data_df, avg_freq=mwi.freq_bw[i, :], profile=profile)  # (scalar)
                     delta_tb = tb_mwi - tb_pam   # (noise,)
                     delta_tb_mean_freq_bw[i, j, k, l] = np.mean(delta_tb)  # (scalar)
                     delta_tb_std_freq_bw[i, j, k, l] = np.std(delta_tb)  # (scalar)
                                         
                     # freq_bw_center
-                    tb_pam = calculate_tb_pamtra(tb=Pam.pam_data_df, avg_freq=mwi.freq_bw_center[i, :], profile=profile)
+                    tb_pam = pam.tb.isel(profile=j, frequency=ix_freq_bw_center[i, :]).mean('frequency').values  # (scalar)
+                    #tb_pam = calculate_tb_pamtra(tb=pam_data_df, avg_freq=mwi.freq_bw_center[i, :], profile=profile)
                     delta_tb = tb_mwi - tb_pam   # (noise,)
                     delta_tb_mean_freq_bw_center[i, j, k, l] = np.mean(delta_tb)  # (scalar)
                     delta_tb_std_freq_bw_center[i, j, k, l] = np.std(delta_tb)  # (scalar)
     
     # create nc file
-    file = path_data + 'delta_tb/delta_tb.nc'
+    file = path_data + 'delta_tb/' + filename_out
     with Dataset(file, 'w', format='NETCDF4') as rootgrp:
     
         # global attributes
@@ -215,7 +246,7 @@ if __name__ == '__main__':
         
         # write profile
         var_profile = rootgrp.createVariable(varname='profile', datatype=np.str, dimensions=('profile',))
-        var_profile.comment = 'Radiosonde profile ID'
+        var_profile.comment = 'Radiosonde profile ID or ID of ERA5 simulation'
         var_profile[:] = profiles
         
         # write noise_level

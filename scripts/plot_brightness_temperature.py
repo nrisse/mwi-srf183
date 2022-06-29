@@ -2,127 +2,200 @@
 
 import numpy as np
 import pandas as pd
-from glob import glob
-import sys
 import matplotlib.pyplot as plt
-sys.path.append('/home/nrisse/uniHome/WHK/eumetsat/scripts')
+import xarray as xr
+import datetime
+import os
+import sys
+sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from mwi_info import mwi
-from seasonal_profiles import profile_prop
+from layout import profile_prop
+from importer import PAMTRA_TB
+from radiosonde import wyo
 from path_setter import *
+
 
 """
 Description
 
-Plot brightness temperature of radiosonde profile
+Plot brightness temperature spectrum of radiosonde profiles
+    - annual mean and standard deviation
+
+PROOF
 """
-
-
-class PAMTRA_TB:
-    
-    def __init__(self):
-        """
-        Class to read brightness temperature simulation
-        """
-
-        # brightness temperature
-        self.pam_data_df = np.nan
-        
-    def get_filename(self, station_id, year, month, day, hour='12', minute='00'):
-        """
-        Build filename from station ID and date
-        """
-        
-        yyyy = str(year)
-        mm = str(month).zfill(2)
-        dd = str(day).zfill(2)
-        HH = str(hour).zfill(2)
-        MM = str(minute).zfill(2)
-        station_id = str(station_id)
-        
-        path = yyyy + '/' + mm + '/' + dd + '/TB_PAMTRA_ID_' + station_id + '_' + yyyy + mm + dd + HH + MM
-        
-        return path
-        
-    def read_all(self, path=path_data+'brightness_temperature/'):
-        """
-        Read data from PAMTRA simulation
-        """
-        
-        files = glob(path + '*/*/*/*.txt')
-        files.append(path + 'TB_PAMTRA_standard_atmosphere.txt')
-        
-        for i, file in enumerate(files):
-            
-            header = file.split('TB_PAMTRA_')[1][:-4]
-                        
-            if i == 0:
-                
-                self.pam_data_df = pd.read_csv(file, delimiter=',', comment='#')
-                self.pam_data_df.rename(columns={'TB': header}, inplace=True)
-            
-            else:
-                
-                pam_data = pd.read_csv(file, delimiter=',', comment='#')
-                self.pam_data_df[header] = pam_data['TB']
-                
-                # check if frequencies are identical (!!!) if not, values have to be joined
-                assert (pam_data['Frequency [GHz]'] == self.pam_data_df['Frequency [GHz]']).all
-                
-        self.pam_data_df.rename(columns={'Frequency [GHz]': 'frequency [GHz]'}, inplace=True)
-    
-    def plot_pamtra_simulation(self):
-        """
-        Plot pamtra simulation
-        
-        Profiles has to be a list of profiles to be plotted
-        """
-        
-        cols = self.pam_data_df.columns[1:]
-        
-        profile_class = [self.get_profile_class(p) for p in cols]
-
-        fig = plt.figure(figsize=(9, 6))
-        ax = fig.add_subplot(111)
-        ax.set_title('PAMTRA simulation at 833 km nadir view (V-pol) and MWI 183.31 GHz channels\nfor different ' +
-                     'radiosonde profiles and standard atmosphere (RH=0%)')
-        
-        for i, profile in enumerate(cols):
-            ax.plot(self.pam_data_df['frequency [GHz]'], self.pam_data_df[profile], profile_prop[profile_class[i]]['line_format'],
-                    label=profile_prop[profile_class[i]]['label'])
-        
-        # add MWI channels
-        for i, channel in enumerate(mwi.channels_str):
-            
-            # annotate channel name
-            ax.annotate(text=mwi.freq_txt[i][4:6], xy=[mwi.freq_center[i, 0]-0.4, 171], fontsize=7,
-                        bbox=dict(boxstyle='square', fc='white', ec='none', pad=0))
-            ax.annotate(text=mwi.freq_txt[i][4:6], xy=[mwi.freq_center[i, 1]-0.4, 171], fontsize=7,
-                        bbox=dict(boxstyle='square', fc='white', ec='none', pad=0))
-            
-            # add vertical lines
-            ax.axvline(x=183.31, color='pink', linestyle='-', alpha=0.5)  # mark line center
-            ax.axvline(x=mwi.freq_center[i, 0], color='gray', linestyle='-', alpha=0.5)  # mark left channel frequency
-            ax.axvline(x=mwi.freq_center[i, 1], color='gray', linestyle='-', alpha=0.5)  # mark right channel frequency
-            
-        ax.legend(bbox_to_anchor=(1.05, 0.5), loc='center left', frameon=False)
-        ax.grid(axis='y')
-        
-        ax.set_ylim([170, 290])
-        ax.set_xlim([np.min(self.pam_data_df['frequency [GHz]']), np.max(self.pam_data_df['frequency [GHz]'])])
-        
-        ax.set_xlabel('Frequency [GHz]')
-        ax.set_ylabel('Brightness temperature [K]')
-        
-        fig.tight_layout()
-        
-        plt.savefig(self._path_fig + 'pamtra_simulation.png', dpi=200)
 
 
 if __name__ == '__main__':
     
     # read brightness temperatures
-    PAM = PAMTRA_TB()
-    PAM.read_all()
+    # read pamtra simulations
+    #Pam = PAMTRA_TB()
+    #Pam.read_all()
+    #Pam.pam_data_df
+    #Pam.pam_data_df.to_csv(path_data+'brightness_temperature/TB_all.txt')
+    # aboves read takes about 2 min
+    #Pam.pam_data_df = pd.read_csv(path_data+'brightness_temperature/TB_all_nadir.txt', sep=',', index_col=0)
+    data = xr.load_dataset(path_data+'brightness_temperature/TB_radiosondes_2019.nc')
+    pam_data_xr = data.isel(angle=9)
+    pam_data_xr = pam_data_xr.transpose('profile', 'frequency')
+    #Pam.pam_data_df
     
-    PAM.pam_data_df
-    PAM.plot_pamtra_simulation()
+    # to xarray
+    #profiles = Pam.pam_data_df.columns.values
+    #profiles = np.delete(profiles, profiles=='frequency [GHz]')
+    #profiles[profiles == 'standard_atmosphere'] = 'ID_00000_190001010000'
+    #kwargs = {'dims': ('profile', 'frequency'), 
+    #                   'coords': { 'profile': profiles, 'frequency': Pam.pam_data_df['frequency [GHz]'].values},
+    #                   'attrs': {'unit': 'K', 'name': 'brightness temperature as function of frequency in GHz', 'source': 'WYO and PAMTRA'}
+    #                 }
+    #pam_data_xr = xr.DataArray(data=Pam.pam_data_df.iloc[:, 1:].values.T, **kwargs)
+    
+    #%% get indices
+    station_id = np.array([x[3:8] for x in pam_data_xr.profile.values])
+    date = np.array([datetime.datetime.strptime(x[-12:], '%Y%m%d%H%M') for x in pam_data_xr.profile.values])
+    year = np.array([x.year for x in date])
+    
+    # index for 2019 data
+    ix_2019 = year == 2019
+    
+    # station index
+    ix_nya = station_id == wyo.station_id['Ny Alesund']
+    ix_snp = station_id == wyo.station_id['Singapore']
+    ix_ess = station_id == wyo.station_id['Essen']
+    ix_bar = station_id == wyo.station_id['Barbados']
+    ix_std = station_id == '00000'
+    
+    #%% calculate 2019 mean profiles
+    mean_dict = dict()
+    std_dict = dict()
+    
+    mean_dict['Ny Alesund'] = pam_data_xr.tb.sel(profile=ix_nya & ix_2019).mean('profile')
+    mean_dict['Singapore'] = pam_data_xr.tb.sel(profile=ix_snp & ix_2019).mean('profile')
+    mean_dict['Essen'] = pam_data_xr.tb.sel(profile=ix_ess & ix_2019).mean('profile')
+    mean_dict['Barbados'] = pam_data_xr.tb.sel(profile=ix_bar & ix_2019).mean('profile')
+    
+    std_dict['Ny Alesund'] = pam_data_xr.tb.sel(profile=ix_nya & ix_2019).std('profile')
+    std_dict['Singapore'] = pam_data_xr.tb.sel(profile=ix_snp & ix_2019).std('profile')
+    std_dict['Essen'] = pam_data_xr.tb.sel(profile=ix_ess & ix_2019).std('profile')
+    std_dict['Barbados'] = pam_data_xr.tb.sel(profile=ix_bar & ix_2019).std('profile')
+    
+    #%% colors for plot
+    colors = {'01004': 'b',
+              '10410': 'g',
+              '48698': 'r',
+              '78954': 'orange',
+              }
+    
+    # also put standard atmosphere to station ID's
+    id_station = wyo.id_station
+    station_id = wyo.station_id
+    
+    #%%  PROOF
+    fig = plt.figure(figsize=(4, 5))
+    ax = fig.add_subplot(111)
+    fig.suptitle('Annual mean$\pm$sd of simulated TB\nfor radiosondes')
+    
+    for station_name in list(mean_dict.keys()):
+        
+        c = colors[wyo.station_id[station_name]]
+        mean = mean_dict[station_name]
+        sd = std_dict[station_name]
+        
+        ax.plot(mean.frequency, mean, color=c, linewidth=1.5, label=station_name, zorder=3)
+        ax.fill_between(x=mean.frequency, y1=mean-sd, y2=mean+sd, color=c, alpha=0.1, zorder=1)
+    
+    # add MWI channels
+    ax.annotate(text='[channel]', xy=(1.1, 1), xycoords='axes fraction', fontsize=7, ha='center', va='bottom')
+    for i, channel in enumerate(mwi.channels_str):
+        
+        # annotate channel name
+        ax.annotate(text=mwi.freq_txt[i][4:6], xy=[mwi.freq_center[i, 0], 285], fontsize=7, ha='center', va='bottom')
+        ax.annotate(text=mwi.freq_txt[i][4:6], xy=[mwi.freq_center[i, 1], 285], fontsize=7, ha='center', va='bottom')
+        
+        # add vertical lines
+        ax.axvline(x=mwi.freq_center[i, 0], color='gray', linestyle=':', alpha=0.5, linewidth=1)  # mark left channel frequency
+        ax.axvline(x=mwi.freq_center[i, 1], color='gray', linestyle=':', alpha=0.5, linewidth=1)  # mark right channel frequency
+    ax.axvline(x=mwi.absorpt_line, color='k', linestyle=':', alpha=0.5, linewidth=1)  # mark line center
+    
+    ax.legend(bbox_to_anchor=(0.5, -0.25), ncol=3, loc='upper center', frameon=True, fontsize=8)
+    ax.grid(axis='y')
+    ax.set_ylim([220, 285])
+    ax.set_xlim([np.min(mean.frequency), np.max(mean.frequency)])
+    ax.set_xlabel('Frequency [GHz]')
+    ax.set_ylabel('Brightness temperature [K]')
+    
+    #plt.subplots_adjust(right=0.95, bottom=0.2, top=0.9)
+    fig.tight_layout()
+    
+    plt.savefig(path_plot + 'brightness_temperature/mean_2019_spectra.png', dpi=300)
+
+    #%% with broken axis: nice example, but no standard atmosphere anymore
+    assert True == False
+    # make y-axis have same ratios
+    ylim1 = [215, 288]
+    ylim2 = [175, 185]
+    ylimratio = (ylim1[1]-ylim1[0])/(ylim2[1]-ylim2[0]+ylim1[1]-ylim1[0])
+    ylim2ratio = (ylim2[1]-ylim2[0])/(ylim2[1]-ylim2[0]+ylim1[1]-ylim1[0])
+    
+    fig, [ax1, ax2] = plt.subplots(2, 1, figsize=(4, 5), gridspec_kw={'height_ratios': [ylimratio, ylim2ratio], 'hspace': 0.05}, sharex=True)
+    fig.suptitle('Annual mean$\pm$sd of simulated TB in 2019\nfor radiosondes and standard atmosphere')
+    
+    for ax in [ax1, ax2]:
+        for station_name in list(mean_dict.keys()):
+            
+            c = colors[wyo.station_id[station_name]]
+            mean = mean_dict[station_name]
+            sd = std_dict[station_name]
+            
+            ax.plot(mean.frequency, mean, color=c, linewidth=1.5, label=station_name, zorder=3)
+            ax.fill_between(x=mean.frequency, y1=mean-sd, y2=mean+sd, color=c, alpha=0.1, zorder=1)
+    
+    # add MWI channels
+    ax1.annotate(text='[channel]', xy=(1.1, 1), xycoords='axes fraction', fontsize=7, ha='center', va='bottom')
+    for i, channel in enumerate(mwi.channels_str):
+        
+        # annotate channel name
+        ax1.annotate(text=mwi.freq_txt[i][4:6], xy=[mwi.freq_center[i, 0], 288], fontsize=7, ha='center', va='bottom')
+        ax1.annotate(text=mwi.freq_txt[i][4:6], xy=[mwi.freq_center[i, 1], 288], fontsize=7, ha='center', va='bottom')
+        
+        for ax in [ax1, ax2]:
+            # add vertical lines
+            ax.axvline(x=mwi.freq_center[i, 0], color='gray', linestyle=':', alpha=0.5, linewidth=1)  # mark left channel frequency
+            ax.axvline(x=mwi.freq_center[i, 1], color='gray', linestyle=':', alpha=0.5, linewidth=1)  # mark right channel frequency
+    
+    for ax in [ax1, ax2]:
+        ax.axvline(x=mwi.absorpt_line, color='k', linestyle=':', alpha=0.5, linewidth=1)  # mark line center
+        
+    # hide the spines between ax and ax2
+    ax1.spines['bottom'].set_visible(False)
+    ax2.spines['top'].set_visible(False)
+    ax1.tick_params(axis=u'x', which=u'both',length=0)  # remove ticks of ax1
+    
+    ax2.legend(bbox_to_anchor=(0.5, -1.6), ncol=3, loc='upper center', frameon=True, fontsize=8)
+    ax1.grid(axis='y')
+    ax2.grid(axis='y')
+    ax1.set_ylim(ylim1)
+    ax2.set_ylim(ylim2)
+    ax2.set_yticks([180])
+    #ax2.tick_params(axis="y", colors="#888888")
+    ax2.set_xlim([np.min(mean.frequency), np.max(mean.frequency)])
+    ax2.set_xlabel('Frequency [GHz]')
+    ax1.set_ylabel('Brightness temperature [K]')
+    
+    # add diagonal lines
+    xd = .015  # how big to make the diagonal lines in axes coordinates
+    yd = .015
+    # arguments to pass to plot, just so we don't keep repeating them
+    kwargs = dict(transform=ax1.transAxes, color='k', clip_on=False)
+    ax1.plot((-xd, +xd), (-yd, +yd), **kwargs)        # top-left diagonal
+    ax1.plot((1 - xd, 1 + xd), (-yd, +yd), **kwargs)  # top-right diagonal
+    
+    yd = yd * ylimratio/ylim2ratio
+    kwargs.update(transform=ax2.transAxes)  # switch to the bottom axes
+    ax2.plot((-xd, +xd), (1 - yd, 1 + yd), **kwargs)  # bottom-left diagonal
+    ax2.plot((1 - xd, 1 + xd), (1 - yd, 1 + yd), **kwargs)  # bottom-right diagonal
+    
+    plt.subplots_adjust(right=0.85, bottom=0.25, left=0.15, top=0.825)
+    
+    plt.savefig(path_plot + 'brightness_temperature/mean_2019_spectra_broken_axes.png', dpi=300)
+    
