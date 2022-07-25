@@ -1,5 +1,5 @@
 """
-Script to plot bandpass measurements on log scale
+Script to plot bandpass measurements in various forms
 """
 
 
@@ -10,17 +10,18 @@ from matplotlib import cm
 import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from importer import Sensitivity
+from importer import Sensitivity, Sensitivity_Pandas
 from mwi_info import mwi
-from path_setter import *
+from path_setter import path_plot
 from calc_delta_tb import create_noise_values
 
 
 if __name__ == '__main__':
     
     #%% read bandpass measurement
-    sen_dsb = Sensitivity(path=path_data+'sensitivity/', filename='MWI-RX183_DSB_Matlab.xlsx')
-    sen = Sensitivity(path=path_data+'sensitivity/', filename='MWI-RX183_Matlab.xlsx')
+    print(Sensitivity.files)
+    sen_dsb = Sensitivity_Pandas(filename=Sensitivity.files[0])
+    sen = Sensitivity_Pandas(filename=Sensitivity.files[1])
     sen_dsb_pert_values = create_noise_values(data_lino=sen_dsb.data_lino, std=0.05, n=1).reshape((1060, 5))
     sen_dsb_pert_df = pd.DataFrame(columns=sen_dsb.data_lino.columns, 
                                    data=np.concatenate((sen_dsb.data_lino['frequency [GHz]'].values.reshape(1060, 1), sen_dsb_pert_values), axis=1))

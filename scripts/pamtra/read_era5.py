@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cartopy.crs as ccrs
 
-file = '/home/nrisse/uniWork/era5-single-levels_20150331_1200.nc'
+file = path_data+'era5/era5-single-levels_20150331_1200.nc'
 
 
 data = xr.open_dataset(file)

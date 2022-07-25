@@ -4,6 +4,10 @@ import numpy as np
 from netCDF4 import Dataset
 import numpy.ma as ma
 import xarray as xr
+import os
+import sys
+sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
+from path_setter import *
 
 
 class Delta_TB:

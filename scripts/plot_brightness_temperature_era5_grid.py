@@ -39,7 +39,7 @@ if __name__ == '__main__':
     data_tb = xr.load_dataset(file_tb)
     
     #%% read ERA5 data
-    #file = '/home/nrisse/uniWork/era5-single-levels_20150331_1200.nc'
+    #file = path_data+'era5/era5-single-levels_20150331_1200.nc'
     #era5 = xr.open_dataset(file)
 
     #%% Radiosonde data: Read IWV and delta_TB data

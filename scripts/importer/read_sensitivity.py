@@ -6,7 +6,7 @@ import xarray as xr
 import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from path_setter import *
+from path_setter import path_data
 from mwi_info import mwi
 
 """
@@ -103,12 +103,12 @@ class Sensitivity:
 
 class Sensitivity_Pandas:
     
-    def __init__(self, path, filename='MWI-RX183_DSB_Matlab.xlsx'):
+    def __init__(self, filename='MWI-RX183_DSB_Matlab.xlsx'):
         """
         Read sensitivity data and prepare (linearize and normalize)
         """
         
-        self.file = path+filename
+        self.file = path_data + 'sensitivity/' + filename
         self.data = self.get_data()
         self.data_lino = self.prepare_data()
         
