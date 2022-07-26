@@ -379,7 +379,8 @@ if __name__ == '__main__':
     reduction_levels = np.arange(1, 6, 1)
     
     n_orig = 1060
-    number_meas = np.floor(n_orig/delta_tb.reduction_level)
+    reduction_levels = np.arange(1, 6)  # how it was specified in delta_tb.nc
+    number_meas = np.floor(n_orig/reduction_levels)
     sample_width =  191.302 - 175.322
     x = sample_width/number_meas*1000
     x = [int(a) for a in x]

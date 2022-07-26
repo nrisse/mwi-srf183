@@ -4,23 +4,19 @@ import matplotlib.pyplot as plt
 import xarray as xr
 import cartopy.crs as ccrs
 import datetime
-import matplotlib.ticker as mticker
 import numpy as np
 import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from path_setter import *
-from importer import Sensitivity
-from importer import PAMTRA_TB
+from path_setter import path_data, path_plot
 from mwi_info import mwi
-from importer import Delta_TB, IWV
 from radiosonde import wyo
+from importer import IWV
 
 
 if __name__ == '__main__':
     
     # UPDATE PLOT FOR NEW ANGLE
-    
     file = path_data+'delta_tb/delta_tb_era5grid.nc'
     data = xr.load_dataset(file)
     
@@ -40,11 +36,11 @@ if __name__ == '__main__':
     
     #%% read ERA5 data
     #file = path_data+'era5/era5-single-levels_20150331_1200.nc'
-    #era5 = xr.open_dataset(file)
+    #ds_era5 = xr.open_dataset(file)
 
     #%% Radiosonde data: Read IWV and delta_TB data
     delta_tb = xr.load_dataset(path_data+'delta_tb/delta_tb.nc')
-
+    
     iwv = IWV()
     iwv.read_data()
     iwv.data = iwv.data.sel(profile=delta_tb.profile)  # reorder iwv data based on delta_tb profile order
@@ -88,13 +84,14 @@ if __name__ == '__main__':
     fig.colorbar(im, ax=ax)
 
     #%% PROOF plot state of atmosphere 
-    fig, axes = plt.subplots(1, 4, figsize=(6, 4), subplot_kw=dict(projection=map_proj))
-    fig.suptitle('Integrated hydrometeor content of ERA-5 scene\nBlack contours indicate integrated water vapor [kg m$^{-2}$]')
+    fig, axes = plt.subplots(1, 4, figsize=(6, 4), constrained_layout=True,
+                             subplot_kw=dict(projection=map_proj))
     
     for i, ax in enumerate(axes):
         ax.set_extent(extent, crs=data_proj)
         ax.coastlines()
-        gl = ax.gridlines(crs=data_proj, linewidth=0.25, color='k', alpha=0.5, draw_labels=True, zorder=2,
+        gl = ax.gridlines(crs=data_proj, linewidth=0.25, color='k', alpha=0.5, 
+                          draw_labels=True, zorder=2,
                           x_inline=False, y_inline=False)
         gl.top_labels = False
         gl.right_labels = False
@@ -102,37 +99,48 @@ if __name__ == '__main__':
             gl.left_labels = False
     
         # plot iwv
-        cs = ax.contour(data_iwv.lon, data_iwv.lat, data_iwv.iwv.T, colors='k', transform=data_proj, linewidths=0.5)
+        cs = ax.contour(data_iwv.lon, data_iwv.lat, data_iwv.iwv.T, colors='k',
+                        transform=data_proj, linewidths=0.5)
         ax.clabel(cs, inline=1, fontsize=6, fmt='%i')
     
     # plot hydrometeors (0: cloud, 1: ice, 2: rain, 3: snow)
     # cloud liquid
-    im = axes[0].pcolormesh(data_hyd.lon, data_hyd.lat, data_hyd.ihydro.sel(h_class=0).T, cmap='Blues', transform=data_proj, 
+    im = axes[0].pcolormesh(data_hyd.lon, data_hyd.lat, 
+                            data_hyd.ihydro.sel(h_class=0).T, 
+                            cmap='Blues', transform=data_proj, 
                             vmin=0, vmax=0.6)
-    cbar = fig.colorbar(im, ax=axes[0], label='Cloud liquid\n[kg m$^{-2}$]', orientation='horizontal')
+    cbar = fig.colorbar(im, ax=axes[0], label='Cloud liquid\n[kg m$^{-2}$]', 
+                        orientation='horizontal', ticks=np.arange(0, 0.8, 0.2))
     cbar.solids.set_edgecolor("face")
     
     # cloud ice
-    im = axes[1].pcolormesh(data_hyd.lon, data_hyd.lat, data_hyd.ihydro.sel(h_class=1).T, cmap='Oranges', transform=data_proj, 
+    im = axes[1].pcolormesh(data_hyd.lon, data_hyd.lat, 
+                            data_hyd.ihydro.sel(h_class=1).T, cmap='Oranges', 
+                            transform=data_proj, 
                             vmin=0, vmax=0.6)
-    cbar = fig.colorbar(im, ax=axes[1], label='Cloud ice\n[kg m$^{-2}$]', orientation='horizontal')
+    cbar = fig.colorbar(im, ax=axes[1], label='Cloud ice\n[kg m$^{-2}$]', 
+                        orientation='horizontal', ticks=np.arange(0, 0.8, 0.2))
     cbar.solids.set_edgecolor("face")
     
     # rain
-    im = axes[2].pcolormesh(data_hyd.lon, data_hyd.lat, data_hyd.ihydro.sel(h_class=2).T, cmap='Greens', transform=data_proj, 
+    im = axes[2].pcolormesh(data_hyd.lon, data_hyd.lat, 
+                            data_hyd.ihydro.sel(h_class=2).T, 
+                            cmap='Greens', transform=data_proj, 
                             vmin=0, vmax=0.4)
-    cbar = fig.colorbar(im, ax=axes[2], label='Rain\n[kg m$^{-2}$]', orientation='horizontal')
+    cbar = fig.colorbar(im, ax=axes[2], label='Rain\n[kg m$^{-2}$]', 
+                        orientation='horizontal', ticks=np.arange(0, 0.8, 0.2))
     cbar.solids.set_edgecolor("face")
     
     # snow
-    im = axes[3].pcolormesh(data_hyd.lon, data_hyd.lat, data_hyd.ihydro.sel(h_class=3).T, cmap='Purples', transform=data_proj, 
+    im = axes[3].pcolormesh(data_hyd.lon, data_hyd.lat, 
+                            data_hyd.ihydro.sel(h_class=3).T, 
+                            cmap='Purples', transform=data_proj, 
                             vmin=0, vmax=3)
-    cbar = fig.colorbar(im, ax=axes[3], label='Snow\n[kg m$^{-2}$]', orientation='horizontal')
+    cbar = fig.colorbar(im, ax=axes[3], label='Snow\n[kg m$^{-2}$]', 
+                        orientation='horizontal', ticks=np.arange(0, 4, 1))
     cbar.solids.set_edgecolor("face")
-    
-    fig.tight_layout()
-    
-    plt.savefig(path_plot+'era5/integrated_values.png', dpi=300)
+        
+    plt.savefig(path_plot+'era5/integrated_values.png', dpi=300, bbox_inches='tight')
     
     #%% PROOF plot delta_tb
     d_sets = ['delta_tb_freq_center', 'delta_tb_freq_bw', 'delta_tb_freq_bw_center']

@@ -1,13 +1,10 @@
 
 
 import requests
-from bs4 import BeautifulSoup
 from io import StringIO
 import pandas as pd
-import numpy as np
-import datetime
 import os
-
+from path_setter import path_data
 
 station_id = {'Ny Alesund': '01004', 'Singapore': '48698', 'Essen': '10410',
               'Barbados': '78954'}

@@ -7,7 +7,7 @@ import xarray as xr
 import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from path_setter import *
+from path_setter import path_data
 
 
 class Delta_TB:

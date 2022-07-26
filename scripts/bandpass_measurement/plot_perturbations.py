@@ -1,17 +1,13 @@
 
 
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib import cm
-import datetime
 import xarray as xr
 import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from path_setter import *
+from path_setter import path_plot, path_data
 from importer import Sensitivity
-from importer import PAMTRA_TB
 from mwi_info import mwi
 
 
@@ -32,7 +28,7 @@ if __name__ == '__main__':
     ds_res.coords['channel'] = ds_sen.channel.values
     ds_res.coords['magnitude'] = offset_magnitude
     for n in pert_names:
-        ds_res[n] = (('channel', 'frequency', 'magnitude'), np.zeros(shape=list(ds_res.dims.values())))
+        ds_res[n] = (list(ds_res.dims.keys()), np.zeros(shape=list(ds_res.dims.values())))
 
     # fill perturbations
     for i, channel in enumerate(mwi.channels_str):
@@ -48,18 +44,18 @@ if __name__ == '__main__':
             for k, ix in enumerate([left_ix, right_ix]):
                 
                 # linear slope
-                ds_res.linear1[i, ix, j] = np.linspace(-magn, magn, len(ix)) * y[k]
-                ds_res.linear2[i, ix, j] = np.linspace(magn, -magn, len(ix)) * y[k]
+                ds_res.linear1[ix, i, j] = np.linspace(-magn, magn, len(ix)) * y[k]
+                ds_res.linear2[ix, i, j] = np.linspace(magn, -magn, len(ix)) * y[k]
                 
                 # inbalance
                 if k == 0: # left
-                    ds_res.inbalance1[i, ix, j] = magn
+                    ds_res.inbalance1[ix, i, j] = magn
                 if k == 1:  # right
-                    ds_res.inbalance2[i, ix, j] = magn
+                    ds_res.inbalance2[ix, i, j] = magn
     
                 # define new ripples
-                ds_res.ripple1[i, ix, j] = magn*np.sin(np.linspace(0, 2*np.pi, len(ix))) * y[k]
-                ds_res.ripple2[i, ix, j] = -magn*np.sin(np.linspace(0, 2*np.pi, len(ix))) * y[k]
+                ds_res.ripple1[ix, i, j] = magn*np.sin(np.linspace(0, 2*np.pi, len(ix))) * y[k]
+                ds_res.ripple2[ix, i, j] = -magn*np.sin(np.linspace(0, 2*np.pi, len(ix))) * y[k]
     
     ds_res.to_netcdf(path_data+'sensitivity/perturbed/MWI-RX183_DSB_Matlab_residual.nc')
     
@@ -153,7 +149,7 @@ if __name__ == '__main__':
     # add legend below
     leg = ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.4), ncol=3, frameon=True)
     
-    plt.savefig(path_plot + 'perturbation/perturbation_single_%1.1f.png'%mag, bbox_inches='tight', dpi=300)
+    plt.savefig(path_plot + 'bandpass_measurement/perturbation/perturbation_single_%1.1f.png'%mag, bbox_inches='tight', dpi=300)
     
     plt.close('all')
     
@@ -211,13 +207,13 @@ if __name__ == '__main__':
         # we don't want the layout to change at this point.
         fig.set_constrained_layout(False)
         
-        plt.savefig(path_plot + 'perturbation/perturbation_%1.1f.png'%mag, bbox_inches='tight', dpi=300)
+        plt.savefig(path_plot + 'bandpass_measurement/perturbation/perturbation_%1.1f.png'%mag, bbox_inches='tight', dpi=300)
     
     plt.close('all')
     
     #%% plot perturbed data for single frequency and magnitude
     # choose first a frequency and a magnitude, which should be shown
-    mag = 2
+    mag = 0.5
     channel = 18
     i = 4  # channel index: 0, 1, 2, 3, 4
     pert_kind = '2'  # plots only one kind of perturbation, to keep the plot clean, either 1 or 2
@@ -271,7 +267,7 @@ if __name__ == '__main__':
     # add legend below
     leg = ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5), ncol=1, frameon=False)
     
-    plt.savefig(path_plot + 'perturbation/perturbed_sensitivity_linear_single_%1.1f_kind%s.png'%(mag, pert_kind), bbox_inches='tight', dpi=300)
+    plt.savefig(path_plot + 'bandpass_measurement/perturbation/perturbed_sensitivity_linear_single_%1.1f_kind%s.png'%(mag, pert_kind), bbox_inches='tight', dpi=300)
     
     plt.close('all')
     
@@ -331,7 +327,7 @@ if __name__ == '__main__':
         # we don't want the layout to change at this point.
         fig.set_constrained_layout(False)
         
-        plt.savefig(path_plot + 'perturbation/perturbed_sensitivity_linear_%1.1f.png'%mag, bbox_inches='tight', dpi=300)
+        plt.savefig(path_plot + 'bandpass_measurement/perturbation/perturbed_sensitivity_linear_%1.1f.png'%mag, bbox_inches='tight', dpi=300)
     
     plt.close('all')
     
@@ -393,8 +389,8 @@ if __name__ == '__main__':
         # we don't want the layout to change at this point.
         fig.set_constrained_layout(False)
         
-        plt.savefig(path_plot + 'perturbation/perturbed_sensitivity_db_%1.1f.svg'%mag, bbox_inches='tight')
-        #plt.savefig(path_plot + 'perturbation/perturbed_sensitivity_db.png', bbox_inches='tight', dpi=300)
+        plt.savefig(path_plot + 'bandpass_measurement/perturbation/perturbed_sensitivity_db_%1.1f.svg'%mag, 
+                    bbox_inches='tight', dpi=300)
         
     plt.close('all')
 

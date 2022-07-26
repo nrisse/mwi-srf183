@@ -1,17 +1,13 @@
 
 
-import pandas as pd
 import numpy as np
-import datetime
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from mwi_info import mwi
-from importer import Delta_TB, IWV
-from radiosonde import wyo
-from path_setter import *
+from importer import Delta_TB
+from path_setter import path_data, path_plot
 
 
 """
@@ -19,6 +15,7 @@ DESCRIPTION
 
 Evaluation of delta_tb depending on the clouds of the era5 dataset
 
+Not used in the final report
 """
 
 
@@ -34,7 +31,7 @@ if __name__ == '__main__':
     # delta_tb.mean_freq_bw_center
     # delta_tb.std_freq_bw_center
     delta_tb = Delta_TB()
-    delta_tb.read_data(file=path_data+'/delta_tb/delta_tb_era5.nc')
+    delta_tb.read_data(file=path_data+'delta_tb/delta_tb_nadir_era5.nc')
     
     #%%
     # index for cloud and no cloud
@@ -93,6 +90,6 @@ if __name__ == '__main__':
     # layout
     fig.tight_layout()
     
-    plt.savefig(path_plot + 'cloud_effect/cloud_effect.png', dpi=200)
+    plt.savefig(path_plot + 'cloud_effect/nadir/cloud_effect_nadir.png', dpi=200)
     
     plt.close()

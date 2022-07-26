@@ -1,18 +1,14 @@
 
 
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import xarray as xr
-import datetime
 import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from mwi_info import mwi
-from layout import profile_prop
 from importer import PAMTRA_TB
-from radiosonde import wyo
-from path_setter import *
+from path_setter import path_plot
 
 
 """
@@ -20,7 +16,6 @@ Description
 
 Plot brightness temperature spectrum of radiosonde profiles
     - annual mean and standard deviation
-
 """
 
 

@@ -11,7 +11,7 @@ import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from importer import Sensitivity, Delta_TB
 from mwi_info import mwi
-from layout import colors, names
+from layout import names
 from radiosonde import wyo
 from path_setter import *
 

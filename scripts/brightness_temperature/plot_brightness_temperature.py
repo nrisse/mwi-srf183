@@ -7,7 +7,6 @@ PROOF
 
 
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import xarray as xr
 import datetime
@@ -15,9 +14,11 @@ import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from mwi_info import mwi
-from importer import PAMTRA_TB
 from radiosonde import wyo
-from path_setter import *
+from path_setter import path_data, path_plot
+from importer import IWV
+
+plt.ion()
 
 
 if __name__ == '__main__':
@@ -45,6 +46,13 @@ if __name__ == '__main__':
     #                 }
     #pam_data_xr = xr.DataArray(data=Pam.pam_data_df.iloc[:, 1:].values.T, **kwargs)
     
+    #%% Read IWV
+    iwv = IWV()
+    iwv.read_data()
+    
+    #%% combine iwv with tb
+    pam_data_xr['iwv'] = iwv.data.sel(profile=pam_data_xr.profile)
+    
     #%% get indices
     station_id = np.array([x[3:8] for x in pam_data_xr.profile.values])
     date = np.array([datetime.datetime.strptime(x[-12:], '%Y%m%d%H%M') for x in pam_data_xr.profile.values])
@@ -60,7 +68,7 @@ if __name__ == '__main__':
     ix_bar = station_id == wyo.station_id['Barbados']
     ix_std = station_id == '00000'
     
-    #%% calculate 2019 mean profiles
+    #%% calculate 2019 mean profilesplot_brightness_temperature_era5_grid_step_function.py
     mean_dict = dict()
     std_dict = dict()
     
@@ -124,6 +132,30 @@ if __name__ == '__main__':
     
     plt.savefig(path_plot + 'brightness_temperature/mean_2019_spectra.png', dpi=300)
 
+    #%% spectra as function of IWV to see why we have this strong dependence
+    # of delta tb at low IWV
+    # clearly the effect at low IWV can be seen, variability at center of
+    # absorption line can not be explained by IWV
+    # in principle, a correction can only be applied if spectral variation
+    # of TB is known - IWV good proxi at outer bands and low IWV, at inner
+    # bands, IWV is not enough - temperature profile etc needed as pamtra
+    # uses - train ML algorithm to make spectral emissivity variation
+    # from a-priori profiles of atmosphere - no perfect solution available,
+    # especially for clouds it becomes impossible in my opinion
+    bins = np.arange(0, 60, 1)
+    labels = (bins[1:]+bins[:-1])/2
+    ds_tb_iwv = pam_data_xr.groupby_bins(group='iwv', labels=labels,
+                                         bins=bins).mean('profile')
+    
+    fig, ax = plt.subplots(1, 1, figsize=(6, 4), constrained_layout=True)
+    
+    ds_tb_iwv_flat = ds_tb_iwv.tb.stack(flat=('iwv_bins', 'frequency'))
+    ax.scatter(ds_tb_iwv_flat.frequency, 
+               ds_tb_iwv_flat, 
+               c=ds_tb_iwv_flat.iwv_bins, 
+               cmap='magma',
+               alpha=0.5)
+    
     #%% with broken axis: nice example, but no standard atmosphere anymore
     assert True == False
     # make y-axis have same ratios

@@ -1,3 +1,6 @@
+"""
+Script to plot reference tb location for visualization in the presentations
+"""
 
 
 import os
@@ -6,15 +9,14 @@ sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts
 import numpy as np
 import matplotlib.pyplot as plt
 
-from path_setter import *
+from path_setter import path_plot
 from mwi_info import mwi
-from importer import Sensitivity
+from importer import Sensitivity_Pandas
 
 
 if __name__ == '__main__':
     
-    
-    sen_dsb = Sensitivity(path=path_data+'sensitivity/', filename='MWI-RX183_DSB_Matlab.xlsx')
+    sen_dsb = Sensitivity_Pandas(filename='MWI-RX183_DSB_Matlab.xlsx')
     
     i = 2
     

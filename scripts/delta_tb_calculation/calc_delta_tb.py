@@ -1,18 +1,15 @@
 
 
 import numpy as np
-import re
 import pandas as pd
-import matplotlib.pyplot as plt
 from netCDF4 import Dataset
 import datetime
 import xarray as xr
 import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from path_setter import *
+from path_setter import path_data
 from importer import Sensitivity
-from importer import PAMTRA_TB
 from mwi_info import mwi
 
 

@@ -246,7 +246,7 @@ def main_grid():
     hydro = calculate_integrated_hydrometeors(pam)
     
     # write to file
-    path_tb = dir_tb + date[:4]+'/'+date[4:6]+'/'+date[6:8]+'/'  # YYYfY/MM/DD/
+    path_tb = dir_tb + date[:4]+'/'+date[4:6]+'/'+date[6:8]+'/'  # YYYY/MM/DD/
     if not os.path.exists(path_tb):
         os.makedirs(path_tb)
         

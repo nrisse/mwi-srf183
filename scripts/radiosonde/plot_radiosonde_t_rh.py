@@ -2,16 +2,13 @@
 
 import pandas as pd
 import numpy as np
-import datetime
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from mwi_info import mwi
 from importer import Radiosonde
 from radiosonde import wyo
-from path_setter import *
+from path_setter import path_plot, path_data
 
 
 """
@@ -52,7 +49,6 @@ if __name__ == '__main__':
     
     #%% plot radiosonde mean profiles
     fig, axes = plt.subplots(1, 2, figsize=(5, 4), sharey=True)
-    fig.suptitle('Atmospheric profiles (mean$\pm$sd)')
     
     # plot standard atmosphere
     #axes[0].plot(St.data['T [K]']-273.15, St.data['p [hPa]'], color='k', label='Standard atmosphere')
@@ -70,14 +66,11 @@ if __name__ == '__main__':
             sd = RS.data[station_id]['std'][var].values
             
             axes[i].plot(mean, RS.data['p [hPa]'], color=c, linewidth=1.5, label=wyo.id_station[station_id])
-            #axes[i].plot(mean+sd, RS.data['p [hPa]'], color=c, linewidth=0.5)
-            #axes[i].plot(mean-sd, RS.data['p [hPa]'], color=c, linewidth=0.5)
-            
-            axes[i].fill_betweenx(y=RS.data['p [hPa]'], x1=mean-sd, x2=mean+sd, color=c, alpha=0.2)
+            axes[i].fill_betweenx(y=RS.data['p [hPa]'], x1=mean-sd, x2=mean+sd, 
+                                  color=c, alpha=0.2, linewidth=0)
         
-    axes[0].legend(bbox_to_anchor=(1.09, -0.2), ncol=3, loc='upper center', frameon=True, fontsize=8)
-    #axes[0].grid()
-    #axes[1].grid()
+    axes[0].legend(bbox_to_anchor=(1.09, -0.2), ncol=4, loc='upper center', frameon=True, fontsize=8)
+
     axes[0].set_ylim([np.max(RS.data['p [hPa]']), np.min(RS.data['p [hPa]'])])
     axes[1].set_xlim([0, 100])
 
@@ -87,4 +80,5 @@ if __name__ == '__main__':
     
     plt.subplots_adjust(right=0.95, bottom=0.25, top=0.9, left=0.15)
     
-    plt.savefig(path_plot + 'radiosonde_profiles/mean_radiosonde_profiles_2019.png', dpi=300)
+    plt.savefig(path_plot + 'data/radiosondes_t_rh.png', 
+                dpi=300, bbox_inches='tight')

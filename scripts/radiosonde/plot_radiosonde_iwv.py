@@ -8,10 +8,9 @@ import matplotlib.dates as mdates
 import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from mwi_info import mwi
-from importer import Delta_TB, IWV
+from importer import IWV
 from radiosonde import wyo
-from path_setter import *
+from path_setter import path_plot
 
 
 """
@@ -21,7 +20,7 @@ Plot IWV of Radiosonde stations
 
 if __name__ == '__main__':
 
-    #%% Read IWV
+    #$$ Read IWV
     iwv = IWV()
     iwv.read_data()
     
@@ -65,7 +64,6 @@ if __name__ == '__main__':
     #%% PROOF Plot integrated water vapor throughout the year for all stations
     fig = plt.figure(figsize=(5, 4))
     ax = fig.add_subplot(111)
-    fig.suptitle('Monthly mean$\pm$sd of IWV in 2019')
     
     xticks = pd.to_datetime(df_mean.index.tolist(), format='%B').sort_values()
     
@@ -77,10 +75,9 @@ if __name__ == '__main__':
         sd = df_std[station_name].values
         
         ax.plot(xticks, mean, color=c, linewidth=1.5, label=station_name)
-        ax.plot(xticks, mean+sd, color=c, linewidth=0.5)
-        ax.plot(xticks, mean-sd, color=c, linewidth=0.5)
         
-        ax.fill_between(x=xticks, y1=mean-sd, y2=mean+sd, color=c, alpha=0.5)
+        ax.fill_between(x=xticks, y1=mean-sd, y2=mean+sd, color=c, alpha=0.2,
+                        linewidth=0)
         
     ax.legend(bbox_to_anchor=(0.5, -0.18), ncol=4, loc='upper center', frameon=True, fontsize=8)
     #ax.grid()
@@ -98,4 +95,5 @@ if __name__ == '__main__':
     plt.subplots_adjust(right=0.95, bottom=0.2, top=0.9)
     #plt.tight_layout()
     
-    plt.savefig(path_plot + 'radiosonde_profiles/iwv_timeseries.png', dpi=300)
+    plt.savefig(path_plot + 'data/radiosondes_iwv_monthly.png', dpi=300,
+                bbox_inches='tight')

@@ -1,19 +1,16 @@
+"""
+Import radiosonde profiles. Calculates 2019 mean and std profile
+"""
 
 
 import numpy as np
 import pandas as pd
-import xarray as xr
 from glob import glob
 import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from path_setter import *
+from path_setter import path_data
 from radiosonde import wyo
-
-
-"""
-Importer functions
-"""
 
 
 class Radiosonde:

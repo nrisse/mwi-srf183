@@ -3,18 +3,12 @@
 import matplotlib.pyplot as plt
 import xarray as xr
 import cartopy.crs as ccrs
-import datetime
-import matplotlib.ticker as mticker
 import numpy as np
 import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from path_setter import *
-from importer import Sensitivity
-from importer import PAMTRA_TB
+from path_setter import path_data, path_plot
 from mwi_info import mwi
-from importer import Delta_TB, IWV
-from radiosonde import wyo
 
 
 if __name__ == '__main__':
@@ -23,7 +17,7 @@ if __name__ == '__main__':
     file = path_data+'/delta_tb/delta_tb_era5grid.nc'
     data = xr.load_dataset(file)
     
-    file = path_data+'/delta_tb/delta_tb_era5grid_step_function.nc'
+    file = path_data+'/delta_tb/delta_tb_nadir_era5grid_step_function.nc'
     data_step_fun = xr.load_dataset(file)
     
     file_iwv = path_data+'/iwv/IWV_PAMTRA_ERA5.nc'

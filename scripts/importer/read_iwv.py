@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 import xarray as xr
-from path_setter import *
+from path_setter import path_data
 
 
 """
