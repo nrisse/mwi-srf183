@@ -21,7 +21,7 @@ if __name__ == '__main__':
     # ds_per = ds_raw + ds_res
     
     #%% create xr dataset with perturbations
-    pert_names = ['linear1', 'linear2', 'inbalance1', 'inbalance2', 'ripple1', 'ripple2']
+    pert_names = ['linear1', 'linear2', 'imbalance1', 'imbalance2', 'ripple1', 'ripple2']
     offset_magnitude = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 1.5, 2.0])
     ds_res = xr.Dataset()
     ds_res.coords['frequency'] = ds_sen.frequency.values
@@ -47,11 +47,11 @@ if __name__ == '__main__':
                 ds_res.linear1[ix, i, j] = np.linspace(-magn, magn, len(ix)) * y[k]
                 ds_res.linear2[ix, i, j] = np.linspace(magn, -magn, len(ix)) * y[k]
                 
-                # inbalance
+                # imbalance
                 if k == 0: # left
-                    ds_res.inbalance1[ix, i, j] = magn
+                    ds_res.imbalance1[ix, i, j] = magn
                 if k == 1:  # right
-                    ds_res.inbalance2[ix, i, j] = magn
+                    ds_res.imbalance2[ix, i, j] = magn
     
                 # define new ripples
                 ds_res.ripple1[ix, i, j] = magn*np.sin(np.linspace(0, 2*np.pi, len(ix))) * y[k]
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     
     #%% plot pure spectral perturbations for a single frequency and magnitude
     # choose first a frequency and a magnitude, which should be shown
-    mag = 2
+    mag = 1
     channel = 18
     i = 4  # channel index: 0, 1, 2, 3, 4
     
@@ -139,8 +139,8 @@ if __name__ == '__main__':
                     alpha=0.2, linewidth=0)
     
     # annotate bandwidth
-    for j in range(2):  # mark left/right channel frequency
-        ax.annotate('|---- 1.5 GHz ----|', xy=(mwi.freq_center[i, j], 1.01), xycoords=('data', 'axes fraction'), ha='center', va='bottom')
+    #for j in range(2):  # mark left/right channel frequency
+    #    ax.annotate('|---- 1.5 GHz ----|', xy=(mwi.freq_center[i, j], 1.01), xycoords=('data', 'axes fraction'), ha='center', va='bottom')
         
     # set axis labels
     ax.set_ylabel('Sensitivity [dB]')
@@ -149,7 +149,8 @@ if __name__ == '__main__':
     # add legend below
     leg = ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.4), ncol=3, frameon=True)
     
-    plt.savefig(path_plot + 'bandpass_measurement/perturbation/perturbation_single_%1.1f.png'%mag, bbox_inches='tight', dpi=300)
+    plt.savefig(path_plot + 'bandpass_measurement/perturbation/perturbation_single_%1.1f.png'%mag, 
+                bbox_inches='tight', dpi=300)
     
     plt.close('all')
     

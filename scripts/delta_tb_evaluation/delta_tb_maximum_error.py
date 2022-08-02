@@ -67,7 +67,7 @@ if __name__ == '__main__':
     ix_bar = station_id == wyo.station_id['Barbados']
     ix_std = station_id == '00000'
     
-    pert_names = ['linear1', 'linear2', 'inbalance1', 'inbalance2', 'ripple1', 'ripple2', 'orig']
+    pert_names = ['linear1', 'linear2', 'imbalance1', 'imbalance2', 'ripple1', 'ripple2', 'orig']
     
     #%% iwv from 2019
     iwv_data = iwv.data[ix_2019]
@@ -75,9 +75,9 @@ if __name__ == '__main__':
     #%% calculate difference between orig and the six perturbations
     delta_tb_diff = delta_tb - delta_tb.sel(perturbation='orig')
     
-    np.mean(delta_tb_diff.sel(perturbation='linear1') + delta_tb_diff.sel(perturbation='linear2'))
-    np.mean(delta_tb_diff.sel(perturbation='inbalance1') + delta_tb_diff.sel(perturbation='inbalance2'))
-    np.mean(delta_tb_diff.sel(perturbation='ripple1') + delta_tb_diff.sel(perturbation='ripple2'))
+    (delta_tb_diff.sel(perturbation='linear1') + delta_tb_diff.sel(perturbation='linear2')).mean('profile')
+    (delta_tb_diff.sel(perturbation='imbalance1') + delta_tb_diff.sel(perturbation='imbalance2')).mean('profile')
+    (delta_tb_diff.sel(perturbation='ripple1') + delta_tb_diff.sel(perturbation='ripple2')).mean('profile')
     
     # calculate MAE (mean absolute error) for each calculation method and channel
     ds_mae_from_delta_tb = np.abs(delta_tb_diff).mean('calc_method').mean('profile')  # independent of calc method
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     ds_tb = ds_tb.assign_coords(frequency=(np.round(ds_tb.frequency.values, 3)*1000).astype(np.int))
     
     # calculate difference
-    perts = np.array(['linear1', 'linear2', 'inbalance1', 'inbalance2', 'ripple1', 'ripple2'])
+    perts = np.array(['linear1', 'linear2', 'imbalance1', 'imbalance2', 'ripple1', 'ripple2'])
     ds_diff = xr.Dataset()
     ds_diff.coords['channel'] = ds_sen.channel.values
     ds_diff.coords['profile'] = ds_tb.profile.values
@@ -216,7 +216,7 @@ if __name__ == '__main__':
     axes[-1, 1].set_xlabel('Integrated water vapor [kg m$^{-2}$]')
     
     axes[0, 0].set_title(r'linear 1+2', fontsize=8)
-    axes[0, 1].set_title(r'inbalance 1+2', fontsize=8)
+    axes[0, 1].set_title(r'imbalance 1+2', fontsize=8)
     axes[0, 2].set_title(r'ripple 1+2', fontsize=8)
     
     for ax in axes.flatten():
@@ -297,8 +297,8 @@ if __name__ == '__main__':
         kwargs_sel = dict(channel=channel, perturbation='linear1', magnitude=0.3)
         axes[i].scatter(iwv_data, np.abs(ds_diff.data.sel(**kwargs_sel)), c=col_lin, **kwargs)
         
-        # inbalance
-        kwargs_sel = dict(channel=channel, perturbation='inbalance1', magnitude=0.3)
+        # imbalance
+        kwargs_sel = dict(channel=channel, perturbation='imbalance1', magnitude=0.3)
         axes[i].scatter(iwv_data, np.abs(ds_diff.data.sel(**kwargs_sel)), c=col_inb, **kwargs)
         
         # ripple
@@ -309,7 +309,7 @@ if __name__ == '__main__':
     for i, channel in enumerate(mwi.channels_int):
         
         mae_lin = ds_mae.data.sel(channel=channel, perturbation='linear1', magnitude=0.3)
-        mae_inb = ds_mae.data.sel(channel=channel, perturbation='inbalance1', magnitude=0.3)
+        mae_inb = ds_mae.data.sel(channel=channel, perturbation='imbalance1', magnitude=0.3)
         mae_rip = ds_mae.data.sel(channel=channel, perturbation='ripple1', magnitude=0.3)
         
         #axes[i].axhline(y=mae_lin, color='white', linewidth=1.5)
@@ -328,7 +328,7 @@ if __name__ == '__main__':
     
     # legend below
     patches = []
-    labels = ['linear', 'inbalance', 'ripple']
+    labels = ['linear', 'imbalance', 'ripple']
     colors = [col_lin, col_inb, col_rip]
     for i, label in enumerate(labels):
         patches.append(mpatches.Patch(color=colors[i], label=label))
@@ -378,8 +378,8 @@ if __name__ == '__main__':
         kwargs_sel = dict(channel=channel, magnitude=mag, perturbation='linear1')
         axes[i].hist(np.abs(ds_diff.data.sel(**kwargs_sel)), color=col_lin, **kwargs)
         
-        # inbalance
-        kwargs_sel = dict(channel=channel, magnitude=mag, perturbation='inbalance1')
+        # imbalance
+        kwargs_sel = dict(channel=channel, magnitude=mag, perturbation='imbalance1')
         axes[i].hist(np.abs(ds_diff.data.sel(**kwargs_sel)), color=col_inb, **kwargs)
         
         # ripple
@@ -390,11 +390,11 @@ if __name__ == '__main__':
     for i, channel in enumerate(mwi.channels_int):
         
         mae_lin = ds_mae.data.sel(channel=channel, magnitude=mag, perturbation='linear1')
-        mae_inb = ds_mae.data.sel(channel=channel, magnitude=mag, perturbation='inbalance1')
+        mae_inb = ds_mae.data.sel(channel=channel, magnitude=mag, perturbation='imbalance1')
         mae_rip = ds_mae.data.sel(channel=channel, magnitude=mag, perturbation='ripple1')
         
         std_lin = ds_std.data.sel(channel=channel, magnitude=mag, perturbation='linear1')
-        std_inb = ds_std.data.sel(channel=channel, magnitude=mag, perturbation='inbalance1')
+        std_inb = ds_std.data.sel(channel=channel, magnitude=mag, perturbation='imbalance1')
         std_rip = ds_std.data.sel(channel=channel, magnitude=mag, perturbation='ripple1')
         
         # annotate mae and std
@@ -411,7 +411,7 @@ if __name__ == '__main__':
         
     # legend below
     patches = []
-    labels = ['linear', 'inbalance', 'ripple']
+    labels = ['linear', 'imbalance', 'ripple']
     colors = [col_lin, col_inb, col_rip]
     for i, label in enumerate(labels):
         patches.append(mpatches.Patch(color=colors[i], label=label))
@@ -456,14 +456,14 @@ if __name__ == '__main__':
     for i, channel in enumerate(mwi.channels_int):
         for j, calc_m in enumerate(ds_rel.calc_method):
             axes[i, j].scatter(iwv_data, ds_rel.data.sel(channel=channel, calc_method=calc_m, perturbation='linear1'), s=2, c=col_lin, linewidths=0, alpha=0.5)
-            axes[i, j].scatter(iwv_data, ds_rel.data.sel(channel=channel, calc_method=calc_m, perturbation='inbalance1'), s=2, c=col_inb, linewidths=0, alpha=0.5)
+            axes[i, j].scatter(iwv_data, ds_rel.data.sel(channel=channel, calc_method=calc_m, perturbation='imbalance1'), s=2, c=col_inb, linewidths=0, alpha=0.5)
             axes[i, j].scatter(iwv_data, ds_rel.data.sel(channel=channel, calc_method=calc_m, perturbation='ripple1'), s=2, c=col_rip, linewidths=0, alpha=0.5)
             
     fig.tight_layout()
 
     # legend below
     patches = []
-    labels = ['linear-orig', 'inbalance-orig', 'ripple-orig']
+    labels = ['linear-orig', 'imbalance-orig', 'ripple-orig']
     colors = [col_lin, col_inb, col_rip]
     for i, label in enumerate(labels):
         patches.append(mpatches.Patch(color=colors[i], label=label))
@@ -496,7 +496,7 @@ if __name__ == '__main__':
         ax.annotate(text=mwi.freq_txt[i].split('\n')[0], xy=(0.1, 0.8), xycoords='axes fraction', backgroundcolor="w",
                     annotation_clip=False, horizontalalignment='left', verticalalignment='top', fontsize=8)
     
-    pert_names = ['linear1', 'inbalance1', 'ripple1']
+    pert_names = ['linear1', 'imbalance1', 'ripple1']
     colors = [col_lin, col_inb, col_rip]
     for i, channel in enumerate(mwi.channels_int):
         for j, pert in enumerate(pert_names):

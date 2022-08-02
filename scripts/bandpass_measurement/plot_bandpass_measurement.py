@@ -5,6 +5,7 @@ Script to plot bandpass measurements in various forms
 
 import numpy as np
 import pandas as pd
+from string import ascii_lowercase as abc
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
@@ -13,7 +14,9 @@ sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts
 from importer import Sensitivity, Sensitivity_Pandas
 from mwi_info import mwi
 from path_setter import path_plot
-from calc_delta_tb import create_noise_values
+from delta_tb_calculation.calc_delta_tb import create_noise_values
+
+plt.ion()
 
 
 if __name__ == '__main__':
@@ -451,3 +454,68 @@ if __name__ == '__main__':
     axes[-1].set_xlabel('Frequency [GHz]')
         
     plt.savefig(path_plot + 'bandpass_measurement/bandpass_measurement_dsb_lino_data_reduction.png', dpi=300)
+    
+    #%% calculate top-hat function
+    df_tophat = pd.DataFrame()
+    df_tophat['frequency [GHz]'] = sen_dsb.data_lino['frequency [GHz]'].copy(deep=True)
+    for i, col in enumerate(sen_dsb.data_lino.columns[1:]):
+        
+        ix0 = (df_tophat['frequency [GHz]'] >= mwi.freq_bw[i, 0]) & (df_tophat['frequency [GHz]'] <= mwi.freq_bw[i, 1])
+        ix1 = (df_tophat['frequency [GHz]'] >= mwi.freq_bw[i, 2]) & (df_tophat['frequency [GHz]'] <= mwi.freq_bw[i, 3])
+        ix = ix0 | ix1
+        df_tophat[col] = np.zeros(len(df_tophat['frequency [GHz]']))
+        df_tophat.loc[ix, col] = 1
+        df_tophat[col] = df_tophat[col]/df_tophat[col].sum()
+    
+    #%% plot sensitivity lino zoomed in to the bandpass region together with
+    # top-hat function    
+    fig, axes = plt.subplots(2, 5, sharey=True, figsize=(7, 4), 
+                             constrained_layout=True)
+    
+    for i, ax in enumerate(fig.axes):
+        ax.annotate(f'({abc[i]})', xycoords='axes fraction', va='top',
+                    ha='left', xy=(0.05, 0.95))
+
+    for i, channel in enumerate(mwi.channels_str):
+        for j in range(2):
+                       
+            ax = axes[j, i]
+        
+            # tophat function
+            ax.fill_between(x=df_tophat['frequency [GHz]'],
+                            y1=df_tophat['ch'+channel+' sensitivity']*100, 
+                            y2=0, color='lavender', linewidths=0,
+                            step='mid')
+            
+            # MWI-RX183_DSB_Matlab.xlsx dataset
+            ax.plot(sen_dsb.data_lino['frequency [GHz]'], 
+                    sen_dsb.data_lino['ch'+channel+' sensitivity']*100, 
+                    color='coral', linewidth=1)
+            
+            # y axis settings
+            ax.set_yticks([0, 0.25, 0.5, 0.75, 1])
+            ax.set_ylim([0, 0.85])
+            
+            # set x-limit
+            ax.set_xticks(np.arange(0, 300))
+            dx = 1.25 - mwi.bandwidth[i]/2
+            ax.set_xlim(mwi.freq_bw[i, j*2]-dx, mwi.freq_bw[i, j*2+1]+dx)
+            
+            # annotate channel name
+            if j == 0:
+                ax.annotate(mwi.freq_txt[i], xy=(0.5, 1.01), 
+                            xycoords='axes fraction', ha='center', va='bottom')
+            
+            # center frequency
+            ax.axvline(x=mwi.freq_center[i, j], color='gray', linestyle='--',
+                       linewidth=0.75, zorder=3)
+
+    # set axis labels
+    axes[1, 0].set_ylabel('Sensitivity [%]')
+    axes[1, 0].set_xlabel('Frequency [GHz]')
+        
+    plt.savefig(path_plot+'bandpass_measurement/bandpass_measurement_dsb_lino_zoom.png', 
+                dpi=300, bbox_inches='tight')
+
+    plt.close('all')
+

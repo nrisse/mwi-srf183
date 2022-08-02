@@ -31,12 +31,6 @@ Caution: no clouds included
 
 if __name__ == '__main__':
     
-    # format for boxplot
-    pam_colors = {'ess_djf': '#008B00', 'ess_mam': '#51FF51', 
-                    'arctic_winter': '#002375', 'arctic_summer': '#6594FF', 
-                    'tropics_february': '#AE0000', 'tropics_august': '#FF5555',
-                    'standard': '#000000'}
-    
     #%% read nc files
     # delta_tb shape: (channel, profile, noise_level, reduction_level)
     # delta_tb.mean_freq_center

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import xarray as xr
 import cartopy.crs as ccrs
 import datetime
+from matplotlib import cm
 import numpy as np
 import os
 import sys
@@ -141,6 +142,20 @@ if __name__ == '__main__':
     cbar.solids.set_edgecolor("face")
         
     plt.savefig(path_plot+'era5/integrated_values.png', dpi=300, bbox_inches='tight')
+    
+    #%% spectral tb variation
+    fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+        
+    for i, lon in enumerate(data_tb.lon):
+        for j, lat in enumerate(data_tb.lat):
+            
+            #ax.scatter(data_tb.frequency, data_tb.tb.isel(lon=i, lat=j, angle=9), 
+            #           c=[data_iwv.iwv.isel(lon=i, lat=j).values.item()]*1088,
+            #           alpha=0.5, s=1, lw=0, vmin=0, vmax=20, cmap='jet')
+            
+            ax.scatter(data_tb.frequency, data_tb.tb.isel(lon=i, lat=j, angle=9), 
+                       c=[data_hyd.ihydro.isel(lon=i, lat=j).sum('h_class').values.item()]*1088,
+                       alpha=0.5, s=1, lw=0, vmin=0, vmax=4, cmap='jet')
     
     #%% PROOF plot delta_tb
     d_sets = ['delta_tb_freq_center', 'delta_tb_freq_bw', 'delta_tb_freq_bw_center']
