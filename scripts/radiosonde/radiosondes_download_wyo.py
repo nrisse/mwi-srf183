@@ -6,16 +6,16 @@ import pandas as pd
 import os
 from path_setter import path_data
 
-station_id = {'Ny Alesund': '01004', 'Singapore': '48698', 'Essen': '10410',
+station_id = {'Ny-Alesund': '01004', 'Singapore': '48698', 'Essen': '10410',
               'Barbados': '78954'}
 
-id_station = {'01004': 'Ny Alesund', '48698': 'Singapore', '10410': 'Essen',
+id_station = {'01004': 'Ny-Alesund', '48698': 'Singapore', '10410': 'Essen',
               '78954': 'Barbados'}
 
 if __name__ == '__main__':
     
     # set stations 
-    name = {'Ny Alesund': 'ny_alesund', 'Singapore': 'singapore', 'Essen': 'essen',
+    name = {'Ny-Alesund': 'ny_alesund', 'Singapore': 'singapore', 'Essen': 'essen',
             'Barbados': 'barbados'}
     
     # set times
