@@ -77,13 +77,13 @@ if __name__ == '__main__':
     # axis limits
     axes[-1].set_xticks(x)
     axes[-1].set_xlim(15, 150)
-    axes[0].set_ylim([0, 0.8])
+    axes[0].set_ylim([0, 0.1])
     
     # annotate station names in legend below
     leg = axes[-1].legend(bbox_to_anchor=(0.5, -0.6), loc='upper center', 
                           frameon=True, ncol=4)
 
-    plt.savefig(path_plot + 'data_reduction_dependency/radiosondes_data_reduction_rs_2019.png', 
+    plt.savefig(path_plot + 'evaluation/radiosondes_srf_reduced_sampling.png', 
                 dpi=300, bbox_inches='tight')   
 
     plt.close('all')

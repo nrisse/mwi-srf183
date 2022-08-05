@@ -53,14 +53,6 @@ if __name__ == '__main__':
     # new dataset to combine with srfs
     ds_com = ds_pam.copy(deep=True)
     
-    # read srf data
-    srf = Sensitivity(filename='MWI-RX183_DSB_Matlab.xlsx')
-    
-    # read srf with systematic perturbations
-    srf_pert = xr.open_dataset(os.environ['PATH_PHD']+'/projects/mwi_bandpass'+
-                               '_effects/data/sensitivity/perturbed/'+
-                               'MWI-RX183_DSB_Matlab_perturb.nc')
-    
     #%% clean profile id
     # add array for radiosonde name based on the profile id
     if file_tb == 'TB_radiosondes_2019':
@@ -79,6 +71,7 @@ if __name__ == '__main__':
     # a netcdf file!
     # dimension: (frequency, channel, i_srf)
     # original measured SRF
+    srf = Sensitivity(filename='MWI-RX183_DSB_Matlab.xlsx')
     ds_com['srf_orig'] = srf.data.lino
     
     # data reduction of srf
@@ -90,13 +83,63 @@ if __name__ == '__main__':
     da_red = xr.concat(lst_da_red, dim=pd.Index(red_levs, 
                                                 name='reduction_level'))
     ds_com['srf_red'] = da_red/da_red.sum('frequency')
-        
-    # systematic srf errors (types, magnitudes, reduction levels, ...)
-    ds_com['srf_err'] = xr.concat([
-        srf_pert['linear1'], srf_pert['linear2'], srf_pert['imbalance1'], 
-        srf_pert['imbalance2'], srf_pert['ripple1'], srf_pert['ripple2']],
-        dim=pd.Index(['linear1', 'linear2', 'imbalance1', 'imbalance2',
-                      'ripple1', 'ripple2'], name='err_type'))
+    
+    # systematic perturbation of srf
+    # (type, magnitude, frequency=srf_orig_frequency)
+    # perturbed = raw + residual
+    err_types = ['linear1', 'linear2', 
+                  'imbalance1', 'imbalance2', 
+                  'ripple1', 'ripple2']
+    offset_magnitude = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 1.5, 2.0])
+    
+    ds_srf_err = xr.Dataset()
+    ds_srf_err.coords['frequency'] = srf.data.frequency.values
+    ds_srf_err.coords['channel'] = srf.data.channel.values
+    ds_srf_err.coords['magnitude'] = offset_magnitude
+    ds_srf_err.coords['err_type'] = err_types
+    ds_srf_err['srf_err_offset_dB'] = (
+        list(ds_srf_err.dims.keys()), 
+        np.zeros(shape=list(ds_srf_err.dims.values())))
+
+    # fill perturbations
+    for i, channel in enumerate(mwi.channels_str):
+        for j, magn in enumerate(offset_magnitude):
+            
+            # bandwidth frequencies in MHz
+            f0, f1, f2, f3 = (np.round(mwi.freq_bw[i], 3)*1000).astype('int')
+            left_ix = np.where((ds_srf_err.frequency.values > f0) & 
+                               (ds_srf_err.frequency.values < f1))[0]
+            right_ix = np.where((ds_srf_err.frequency.values > f2) & 
+                                (ds_srf_err.frequency.values < f3))[0]
+            
+            y = [1, -1]
+            
+            for k, ix in enumerate([left_ix, right_ix]):
+                
+                # linear slope
+                ds_srf_err.srf_err_offset_dB[ix, i, j, 0] = np.linspace(-magn, magn, 
+                                                               len(ix)) * y[k]
+                ds_srf_err.srf_err_offset_dB[ix, i, j, 1] = np.linspace(magn, -magn, 
+                                                               len(ix)) * y[k]
+                
+                # imbalance
+                if k == 0: # left
+                    ds_srf_err.srf_err_offset_dB[ix, i, j, 2] = magn
+                if k == 1:  # right
+                    ds_srf_err.srf_err_offset_dB[ix, i, j, 3] = magn
+    
+                # define new ripples
+                ds_srf_err.srf_err_offset_dB[ix, i, j, 4] = magn*np.sin(
+                    np.linspace(0, 2*np.pi, len(ix))) * y[k]
+                ds_srf_err.srf_err_offset_dB[ix, i, j, 5] = -magn*np.sin(
+                    np.linspace(0, 2*np.pi, len(ix))) * y[k]
+    
+    # apply perturbations on raw srf data
+    ds_srf_err['srf_err_dB'] = srf.data['raw'] + ds_srf_err['srf_err_offset_dB']
+    ds_srf_err['srf_err'] = 10**(0.1*ds_srf_err['srf_err_dB'])
+    ds_com['srf_err_offset_dB'] = ds_srf_err['srf_err_offset_dB']
+    ds_com['srf_err_dB'] = ds_srf_err['srf_err_dB']
+    ds_com['srf_err'] = ds_srf_err['srf_err']
     
     # create idealized srf for the modelled mwi observation from mwi_info
     # everywhere nan, except for the specified frequencies
@@ -165,4 +208,3 @@ if __name__ == '__main__':
     
     #%%
     plt.close('all')
-        

@@ -7,90 +7,19 @@ import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from path_setter import path_plot, path_data
-from importer import Sensitivity
 from mwi_info import mwi
 
 
 if __name__ == '__main__':
     
-    # read bandpass measurement
-    sen_dsb = Sensitivity(filename='MWI-RX183_DSB_Matlab.xlsx')
-    ds_sen = sen_dsb.data
+    # read dataset with different perturbed srf
+    ds_com = xr.open_dataset(path_data+'/brightness_temperature/'+
+                             'TB_radiosondes_2019_MWI.nc')
     
-    # perturbed = raw + residual
-    # ds_per = ds_raw + ds_res
-    
-    #%% create xr dataset with perturbations
-    pert_names = ['linear1', 'linear2', 'imbalance1', 'imbalance2', 'ripple1', 'ripple2']
-    offset_magnitude = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 1.5, 2.0])
-    ds_res = xr.Dataset()
-    ds_res.coords['frequency'] = ds_sen.frequency.values
-    ds_res.coords['channel'] = ds_sen.channel.values
-    ds_res.coords['magnitude'] = offset_magnitude
-    for n in pert_names:
-        ds_res[n] = (list(ds_res.dims.keys()), np.zeros(shape=list(ds_res.dims.values())))
-
-    # fill perturbations
-    for i, channel in enumerate(mwi.channels_str):
-        for j, magn in enumerate(offset_magnitude):
-            
-            # bandwidth frequencies in MHz
-            f0, f1, f2, f3 = (np.round(mwi.freq_bw[i], 3)*1000).astype(np.int)
-            left_ix = np.where((ds_res.frequency.values > f0) & (ds_res.frequency.values < f1))[0]
-            right_ix = np.where((ds_res.frequency.values > f2) & (ds_res.frequency.values < f3))[0]
-            
-            y = [1, -1]
-            
-            for k, ix in enumerate([left_ix, right_ix]):
-                
-                # linear slope
-                ds_res.linear1[ix, i, j] = np.linspace(-magn, magn, len(ix)) * y[k]
-                ds_res.linear2[ix, i, j] = np.linspace(magn, -magn, len(ix)) * y[k]
-                
-                # imbalance
-                if k == 0: # left
-                    ds_res.imbalance1[ix, i, j] = magn
-                if k == 1:  # right
-                    ds_res.imbalance2[ix, i, j] = magn
-    
-                # define new ripples
-                ds_res.ripple1[ix, i, j] = magn*np.sin(np.linspace(0, 2*np.pi, len(ix))) * y[k]
-                ds_res.ripple2[ix, i, j] = -magn*np.sin(np.linspace(0, 2*np.pi, len(ix))) * y[k]
-    
-    ds_res.to_netcdf(path_data+'sensitivity/perturbed/MWI-RX183_DSB_Matlab_residual.nc')
-    
-    # comment: added 'magnitude' to ds_res. Scripts below are only for magnitude 0.3 (!)
-    # if plots need to be made new, then take this into account!
-    
-    #%% apply perturbations on raw data
-    ds_per_log = xr.Dataset()
-    ds_per_log.coords['frequency'] = ds_sen.frequency.values
-    ds_per_log.coords['channel'] = ds_sen.channel.values
-    ds_per_log.coords['magnitude'] = offset_magnitude
-    for name in pert_names:
-        for j, magn in enumerate(offset_magnitude):
-            ds_per_log[name] = ds_res[name] + ds_sen['raw']
-    
-    # linearize
-    ds_per_li = xr.Dataset()
-    ds_per_li.coords['frequency'] = ds_sen.frequency.values
-    ds_per_li.coords['channel'] = ds_sen.channel.values
-    ds_per_log.coords['magnitude'] = offset_magnitude
-    for name in pert_names:
-        ds_per_li[name] = 10**(0.1*ds_per_log[name])
-        
-    # linearize and normalize
-    ds_per_lino = xr.Dataset()
-    ds_per_lino.attrs = {'comment': 'perturbations in [dB] were added to raw data, then linearized and normalized.'}
-    ds_per_lino.coords['frequency'] = ds_sen.frequency.values
-    ds_per_lino.coords['channel'] = ds_sen.channel.values
-    ds_per_lino.coords['magnitude'] = offset_magnitude
-    for name in pert_names:
-        ds_per_lino[name] = ds_per_li[name]/ds_per_li[name].sum('frequency')
-    ds_per_lino['orig'] = ds_sen['lino']
-    
-    # write to netCDF file
-    ds_per_lino.to_netcdf(path_data+'sensitivity/perturbed/MWI-RX183_DSB_Matlab_perturb.nc')
+    # remove frequencies, at which no original srf was measured
+    # this makes the line plots nicer, becuase otherwise bandpass frequencies
+    # cause gaps in the lines
+    ds_com = ds_com.sel(frequency=~np.isnan(ds_com.srf_orig.sel(channel=14).values))
     
     #%% plot settings
     cols = ['#577590', '#577590',
@@ -107,9 +36,12 @@ if __name__ == '__main__':
     
     fig, ax = plt.subplots(1, 1, sharex='all', figsize=(5, 4), constrained_layout=True)
     
-    for j, name in enumerate(pert_names):
+    for j, err_type in enumerate(ds_com.err_type.values):
         
-        ax.plot(ds_res['frequency']/1e3, ds_res[name].sel(channel=channel, magnitude=mag), color=cols[j], linewidth=2, label=name, linestyle=lst[j])
+        ax.plot(ds_com['frequency']/1e3, 
+                ds_com.srf_err_offset_dB.sel(channel=channel, magnitude=mag, 
+                                      err_type=err_type), 
+                color=cols[j], linewidth=2, label=err_type, linestyle=lst[j])
     
     # y axis settings
     ax.set_yticks([-mag, 0, mag])
@@ -155,16 +87,21 @@ if __name__ == '__main__':
     plt.close('all')
     
     #%% plot pure spectral perturbations  
-    for k, mag in enumerate(offset_magnitude):
+    for k, mag in enumerate(ds_com.magnitude):
         
         fig, axes = plt.subplots(5, 1, sharex='all', figsize=(5, 4), constrained_layout=True)
         axes = axes.flatten(order='F')
         
-        for i, channel in enumerate(mwi.channels_str):
+        for i, channel in enumerate(ds_com.channel.values):
             
-            for j, name in enumerate(pert_names):
+            for j, err_type in enumerate(ds_com.err_type.values):
                 
-                axes[i].plot(ds_res['frequency']/1e3, ds_res[name].isel(channel=i, magnitude=k), color=cols[j], linewidth=1, label=name, linestyle=lst[j])
+                axes[i].plot(ds_com['frequency']/1e3,
+                             ds_com.srf_err_offset_dB.sel(channel=channel, 
+                                                          magnitude=mag,
+                                                          err_type=err_type), 
+                             color=cols[j], linewidth=1, label=err_type, 
+                             linestyle=lst[j])
             
             # y axis settings
             axes[i].set_yticks([-mag, 0, mag])
@@ -216,18 +153,22 @@ if __name__ == '__main__':
     # choose first a frequency and a magnitude, which should be shown
     mag = 0.5
     channel = 18
-    i = 4  # channel index: 0, 1, 2, 3, 4
-    pert_kind = '2'  # plots only one kind of perturbation, to keep the plot clean, either 1 or 2
+    pert_kind = '1'  # plots only one kind of perturbation, to keep the plot clean, either 1 or 2
             
     fig, ax = plt.subplots(1, 1, sharex='all', figsize=(7, 3), constrained_layout=True, sharey=True)
                 
     # original
-    ax.plot(ds_sen['frequency']/1e3, 100*ds_sen['lino'].isel(channel=i), color='k', linewidth=1, label='original')
+    ax.plot(ds_com['frequency']/1e3, 
+            100*ds_com['srf_orig'].sel(channel=channel), color='k', 
+            linewidth=1, label='original')
     
-    for j, name in enumerate(pert_names):
+    for j, err_type in enumerate(ds_com.err_type.values):
         
-        if pert_kind in name:
-            ax.plot(ds_per_lino['frequency']/1e3, 100*ds_per_lino[name].sel(channel=channel, magnitude=mag), color=cols[j], linewidth=2, label=name, linestyle=lst[j])
+        if pert_kind in err_type:
+            ax.plot(ds_com['frequency']/1e3, 
+                    100*ds_com.srf_err.sel(channel=channel, magnitude=mag,
+                                           err_type=err_type), 
+                    color=cols[j], linewidth=2, label=err_type, linestyle=lst[j])
         else:
             continue
     
@@ -273,19 +214,26 @@ if __name__ == '__main__':
     plt.close('all')
     
     #%% plot perturbed data
-    for k, mag in enumerate(offset_magnitude):
+    for k, mag in enumerate(ds_com.magnitude.values):
         
         fig, axes = plt.subplots(5, 1, sharex='all', figsize=(5, 5), constrained_layout=True, sharey=True)
         axes = axes.flatten(order='F')
             
-        for i, channel in enumerate(mwi.channels_str):
+        for i, channel in enumerate(ds_com.channel.values):
             
             # original
-            axes[i].plot(ds_sen['frequency']/1e3, 100*ds_sen['lino'].isel(channel=i), color='k', linewidth=0.9, label='original')
+            axes[i].plot(ds_com['frequency']/1e3, 
+                         100*ds_com['srf_orig'].sel(channel=channel), 
+                         color='k', linewidth=0.9, label='original')
             
-            for j, name in enumerate(pert_names):
+            for j, err_type in enumerate(ds_com.err_type.values):
                 
-                axes[i].plot(ds_per_lino['frequency']/1e3, 100*ds_per_lino[name].isel(channel=i, magnitude=k), color=cols[j], linewidth=0.5, label=name, linestyle=lst[j])
+                axes[i].plot(ds_com['frequency']/1e3, 
+                             100*ds_com.srf_err.sel(channel=channel, 
+                                                       magnitude=mag,
+                                                       err_type=err_type),
+                             color=cols[j], linewidth=0.5, label=err_type, 
+                             linestyle=lst[j])
             
             # y axis settings
             axes[i].set_ylim([0, 1.1])
@@ -333,19 +281,25 @@ if __name__ == '__main__':
     plt.close('all')
     
     #%% plot perturbed data
-    for k, mag in enumerate(offset_magnitude):
+    for k, mag in enumerate(ds_com.magnitude):
     
         fig, axes = plt.subplots(5, 1, sharex='all', figsize=(9, 6), constrained_layout=True)
         axes = axes.flatten(order='F')
             
-        for i, channel in enumerate(mwi.channels_str):
+        for i, channel in enumerate(ds_com.channel):
             
             # original
-            axes[i].plot(ds_sen['frequency']/1e3, ds_sen['raw'].isel(channel=i), color='k', linewidth=0.9, label='original')
+            axes[i].plot(ds_com['frequency']/1e3, 
+                         ds_com['srf_orig'].isel(channel=i), color='k', 
+                         linewidth=0.9, label='original')
             
-            for j, name in enumerate(pert_names):
+            for j, err_type in enumerate(ds_com.err_type.values):
                 
-                axes[i].plot(ds_per_log['frequency']/1e3, ds_per_log[name].isel(channel=i, magnitude=k), color=cols[j], linewidth=0.5, label=name)
+                axes[i].plot(ds_com['frequency']/1e3, 
+                             ds_com.srf_err.sel(channel=channel, 
+                                                magnitude=mag,
+                                                err_type=err_type),
+                             color=cols[j], linewidth=0.5, label=err_type)
             
             # y axis settings
             axes[i].set_ylim([-4, 0.5])
