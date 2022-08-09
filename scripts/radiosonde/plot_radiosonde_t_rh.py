@@ -1,3 +1,6 @@
+"""
+Plot mean radiosonde profiles
+"""
 
 
 import pandas as pd
@@ -10,26 +13,6 @@ from importer import Radiosonde
 from radiosonde import wyo
 from path_setter import path_plot, path_data
 
-
-"""
-Plot mean radiosonde profiles
-"""
-
-class Standard_Atmosphere:
-    
-    def __init__(self):
-        
-        self.data = np.nan
-        
-    def read_data(self):
-        """
-        Read one profile each
-        """
-        
-        file_standard = path_data + 'atmosphere/standard_atmosphere.txt'
-        self.data = pd.read_csv(file_standard, delimiter=',', comment='#', 
-                                names=['z [m]', 'p [hPa]', 'T [K]', 'RH [%]'])
-        
 
 if __name__ == '__main__':
     

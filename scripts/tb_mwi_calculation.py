@@ -40,9 +40,9 @@ plt.ion()
 if __name__ == '__main__':
     
     # input file of simulated brightness temperatures
-    file_tb = 'TB_radiosondes_2019'
+    #file_tb = 'TB_radiosondes_2019'
     #file_tb = 'TB_era5_hyd'
-    #file_tb = 'TB_era5'
+    file_tb = 'TB_era5'
     
     # read pamtra simulation of radiosondes
     ds_pam = xr.open_dataset(os.environ['PATH_PHD']+'/projects/mwi_bandpass'+
@@ -129,9 +129,9 @@ if __name__ == '__main__':
                     ds_srf_err.srf_err_offset_dB[ix, i, j, 3] = magn
     
                 # define new ripples
-                ds_srf_err.srf_err_offset_dB[ix, i, j, 4] = magn*np.sin(
+                ds_srf_err.srf_err_offset_dB[ix, i, j, 4] = -magn*np.sin(
                     np.linspace(0, 2*np.pi, len(ix))) * y[k]
-                ds_srf_err.srf_err_offset_dB[ix, i, j, 5] = -magn*np.sin(
+                ds_srf_err.srf_err_offset_dB[ix, i, j, 5] = magn*np.sin(
                     np.linspace(0, 2*np.pi, len(ix))) * y[k]
     
     # apply perturbations on raw srf data

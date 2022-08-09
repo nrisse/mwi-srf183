@@ -6,11 +6,76 @@ Import radiosonde profiles. Calculates 2019 mean and std profile
 import numpy as np
 import pandas as pd
 from glob import glob
+from datetime import datetime
 import os
 import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from path_setter import path_data
 from radiosonde import wyo
+
+
+import xarray as xr
+
+
+if __name__ == '__main__':
+
+    files = glob(path_data + 'atmosphere/2019/*/*/*.txt')
+
+    # get maximum length
+    lengths = []
+    for file in files:
+        df = pd.read_csv(file, comment='#')
+        lengths.append(len(df.index))
+    print(np.max(lengths))
+
+
+    for i, file in enumerate(files):
+        
+        station = wyo.id_station[file[-22:-17]]
+        time = np.datetime64(datetime.strptime(file[-16:-4], '%Y%m%d%H%M%S')).astype('datetime64[s]')
+        
+        df = pd.read_csv(file, comment='#')
+        
+        if i == 0:
+            
+            ds = xr.Dataset()
+            ds.coords['station'] = np.array([station])
+            ds.coords['lev'] = np.arange(200)
+            ds.coords['time'] = np.array([time])
+            for var in list(df):
+                ds[var] = (('lev', 'station', 'time'), np.full((200, 1, 1), fill_value=np.nan))
+                ds[var][:len(df.index), 0, 0] = df[var].values  
+            
+        else:
+            
+            ds_other = xr.Dataset()
+            ds_other.coords['station'] = np.array([station])
+            ds_other.coords['lev'] = np.arange(200)
+            ds_other.coords['time'] = np.array([time])
+            for var in list(df):
+                ds_other[var] = (('lev', 'station', 'time'), np.full((200, 1, 1), fill_value=np.nan))
+                ds_other[var][:len(df.index), 0, 0] = df[var].values  
+            
+            ds = ds.merge(ds_other)
+
+
+    # interpolate on regular height grid - not sure how though!
+
+    ds['z [m]'] = ds['z [m]'].ffill(dim='lev')
+    ds['z [m]'] = ds['z [m]'].bfill(dim='lev')
+    ds['z [m]'] = ds['z [m]'].fillna(0)
+
+    import matplotlib.pyplot as plt
+
+
+    fig, ax = plt.subplots()
+
+    ax.pcolormesh(ds['time'].values,
+                ds['z [m]'].sel(station='Ny-Alesund'),
+                ds['r [g/kg]'].sel(station='Ny-Alesund'),
+                shading='nearest'
+                )
+
 
 
 class Radiosonde:
@@ -45,7 +110,7 @@ class Radiosonde:
             print(station_id)
             
             # get all 2019 data
-            files = glob(path_data + 'atmosphere/2019/*/*/ID_'+station_id+'*.txt')
+            
             
             # get all values for the station ID
             values = np.array([])

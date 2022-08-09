@@ -14,7 +14,6 @@ sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts
 from importer import Sensitivity, Sensitivity_Pandas
 from mwi_info import mwi
 from path_setter import path_plot
-from delta_tb_calculation.calc_delta_tb import create_noise_values
 
 plt.ion()
 
@@ -25,9 +24,6 @@ if __name__ == '__main__':
     print(Sensitivity.files)
     sen_dsb = Sensitivity_Pandas(filename=Sensitivity.files[0])
     sen = Sensitivity_Pandas(filename=Sensitivity.files[1])
-    sen_dsb_pert_values = create_noise_values(data_lino=sen_dsb.data_lino, std=0.05, n=1).reshape((1060, 5))
-    sen_dsb_pert_df = pd.DataFrame(columns=sen_dsb.data_lino.columns, 
-                                   data=np.concatenate((sen_dsb.data_lino['frequency [GHz]'].values.reshape(1060, 1), sen_dsb_pert_values), axis=1))
     
     #%% PROOF plot sensitivity data (raw, all, log scale)
     fig, axes = plt.subplots(5, 1, sharex='all', figsize=(9, 6))
@@ -474,12 +470,24 @@ if __name__ == '__main__':
     
     for i, ax in enumerate(fig.axes):
         ax.annotate(f'({abc[i]})', xycoords='axes fraction', va='top',
-                    ha='left', xy=(0.05, 0.95))
+                    ha='left', xy=(0.01, 1.01))
+                
+    axes2 = np.full_like(axes, dtype='object', fill_value='')
+    for i in range(axes.shape[0]):
+        for j in range(axes.shape[1]):
+            axes2[i, j] = axes[i, j].twinx()
+    
+    for ax2 in axes2[:, :4].flatten():
+        ax2.set_yticklabels([])
+        
+    for ax in fig.axes:
+        ax.spines.top.set_visible(False)
 
     for i, channel in enumerate(mwi.channels_str):
         for j in range(2):
                        
             ax = axes[j, i]
+            ax2 = axes2[j, i]
         
             # tophat function
             ax.fill_between(x=df_tophat['frequency [GHz]'],
@@ -492,6 +500,13 @@ if __name__ == '__main__':
                     sen_dsb.data_lino['ch'+channel+' sensitivity']*100, 
                     color='coral', linewidth=1)
             
+            # MWI-RX183_DSB_Matlab.xlsx dataset in dB
+            ax2.plot(sen_dsb.data['frequency [GHz]'], 
+                    sen_dsb.data['ch'+channel+' sensitivity [dB]'], 
+                    color='skyblue', linewidth=1)
+            
+            ax2.set_ylim(-40, 0)
+            
             # y axis settings
             ax.set_yticks([0, 0.25, 0.5, 0.75, 1])
             ax.set_ylim([0, 0.85])
@@ -503,7 +518,7 @@ if __name__ == '__main__':
             
             # annotate channel name
             if j == 0:
-                ax.annotate(mwi.freq_txt[i], xy=(0.5, 1.01), 
+                ax.annotate(mwi.freq_txt[i].split('\n')[0], xy=(0.5, 1.01), 
                             xycoords='axes fraction', ha='center', va='bottom')
             
             # center frequency
@@ -511,7 +526,8 @@ if __name__ == '__main__':
                        linewidth=0.75, zorder=3)
 
     # set axis labels
-    axes[1, 0].set_ylabel('Sensitivity [%]')
+    axes[1, 0].set_ylabel('Sensitivity [%]', color='coral')
+    axes2[1, -1].set_ylabel('Sensitivity [dB]', color='skyblue')
     axes[1, 0].set_xlabel('Frequency [GHz]')
         
     plt.savefig(path_plot+'bandpass_measurement/bandpass_measurement_dsb_lino_zoom.png', 
