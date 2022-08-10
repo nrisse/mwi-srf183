@@ -210,7 +210,7 @@ pam.nmlSet['creator'] = 'Nils Risse'
 pam.nmlSet['active'] = False
 pam.nmlSet['passive'] = True
 pam.nmlSet['outpol'] = 'VH'
-pam.set['freqs'] = np.loadtxt(os.environ['PATH_PHD']+'/projects/mwi_bandpass_effects/data/frequencies.txt')
+pam.set['freqs'] = np.loadtxt(os.environ['PATH_PHD']+'/projects/mwi_bandpass_effects/data/brightness_temperature/frequencies.txt')
 
 pam.nmlSet['add_obs_height_to_layer'] = False  # not for satellite view
 

@@ -30,11 +30,15 @@ if __name__ == '__main__':
     
     #%% plot pure spectral perturbations for a single frequency and magnitude
     # choose first a frequency and a magnitude, which should be shown
-    mag = 1
+    mag = 0.5
     channel = 18
     i = 4  # channel index: 0, 1, 2, 3, 4
     
-    fig, ax = plt.subplots(1, 1, sharex='all', figsize=(5, 4), constrained_layout=True)
+    fig, ax = plt.subplots(1, 1, sharex='all', figsize=(7, 2.5), 
+                           constrained_layout=True)
+    
+    ax.spines.top.set_visible(False)
+    ax.spines.right.set_visible(False)
     
     for j, err_type in enumerate(ds_com.err_type.values):
         
@@ -51,37 +55,27 @@ if __name__ == '__main__':
     ax.set_xticks(np.arange(170, 190, 1))
     ax.set_xlim([183.31-3-0.1, 183.31+3+0.1])
     
-    # annotate channel name
-    ax.annotate(text=mwi.freq_txt[i], xy=(0.5, 1.01), xycoords='axes fraction', backgroundcolor='None',
-                     annotation_clip=False, horizontalalignment='center', verticalalignment='bottom')
-    
     # add vertical lines
     ax.axvline(x=mwi.absorpt_line, color='k', linewidth=1, zorder=0)  # mark line center
     
-    #for j in range(2):  # mark left/right channel frequency
-    #    ax.axvline(x=mwi.freq_center[i, j], color='gray', linestyle='--', linewidth=0.75, zorder=0)
-    
-    #for j in range(4):  # mark each bandwidth edge
-    #    ax.axvline(x=mwi.freq_bw[i, j], color='gray', linestyle=':', linewidth=0.75, zorder=0)
-    
     # add shade for each channel
-    ax.axvspan(xmin=mwi.freq_bw[i, 0], xmax=mwi.freq_bw[i, 1], ymin=-10e3, ymax=10e3, color='gray',
+    ax.axvspan(xmin=mwi.freq_bw[i, 0], xmax=mwi.freq_bw[i, 1], ymin=-10e3,
+               ymax=10e3, color='gray',
                     alpha=0.2, linewidth=0)
-    ax.axvspan(xmin=mwi.freq_bw[i, 2], xmax=mwi.freq_bw[i, 3], ymin=-10e3, ymax=10e3, color='gray',
+    ax.axvspan(xmin=mwi.freq_bw[i, 2], xmax=mwi.freq_bw[i, 3], ymin=-10e3, 
+               ymax=10e3, color='gray',
                     alpha=0.2, linewidth=0)
     
-    # annotate bandwidth
-    #for j in range(2):  # mark left/right channel frequency
-    #    ax.annotate('|---- 1.5 GHz ----|', xy=(mwi.freq_center[i, j], 1.01), xycoords=('data', 'axes fraction'), ha='center', va='bottom')
-        
     # set axis labels
     ax.set_ylabel('Sensitivity [dB]')
     ax.set_xlabel('Frequency [GHz]')
         
     # add legend below
-    leg = ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.4), ncol=3, frameon=True)
+    leg = ax.legend(loc='center left', bbox_to_anchor=(1.01, 0.5), ncol=1, 
+                    frameon=False)
     
-    plt.savefig(path_plot + 'bandpass_measurement/perturbation/perturbation_single_%1.1f.png'%mag, 
+    plt.savefig(path_plot + 'bandpass_measurement/perturbation/'+
+                'perturbation_single_%1.1f.png'%mag, 
                 bbox_inches='tight', dpi=300)
     
     plt.close('all')
@@ -89,7 +83,8 @@ if __name__ == '__main__':
     #%% plot pure spectral perturbations  
     for k, mag in enumerate(ds_com.magnitude):
         
-        fig, axes = plt.subplots(5, 1, sharex='all', figsize=(5, 4), constrained_layout=True)
+        fig, axes = plt.subplots(5, 1, sharex='all', figsize=(5, 4), 
+                                 constrained_layout=True)
         axes = axes.flatten(order='F')
         
         for i, channel in enumerate(ds_com.channel.values):

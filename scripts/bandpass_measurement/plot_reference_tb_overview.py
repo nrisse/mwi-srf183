@@ -11,12 +11,12 @@ import matplotlib.pyplot as plt
 
 from path_setter import path_plot
 from mwi_info import mwi
-from importer import Sensitivity_Pandas
+from importer import Sensitivity
 
 
 if __name__ == '__main__':
     
-    sen_dsb = Sensitivity_Pandas(filename='MWI-RX183_DSB_Matlab.xlsx')
+    sen_dsb = Sensitivity(filename='MWI-RX183_DSB_Matlab.xlsx')
     
     i = 2
     
@@ -24,7 +24,8 @@ if __name__ == '__main__':
     fig = plt.figure(figsize=(5, 2))
     ax = fig.add_subplot()
     ax.set_title('Channel MWI-16')
-    ax.plot(sen_dsb.data_lino['frequency [GHz]'], sen_dsb.data_lino['ch16 sensitivity'], color='k', zorder=1)
+    ax.plot(sen_dsb.data.frequency*1e-3, 
+            sen_dsb.data.lino.sel(channel=16), color='k', zorder=1)
     
     # add vertical lines    
     for j in range(2):  # mark left/right channel frequency
@@ -56,7 +57,8 @@ if __name__ == '__main__':
     def fig_maker():
         fig = plt.figure(figsize=(2, 0.75))
         ax = fig.add_subplot()
-        ax.plot(sen_dsb.data_lino['frequency [GHz]'], sen_dsb.data_lino['ch18 sensitivity'], color='k', zorder=1)
+        ax.plot(sen_dsb.data.frequency*1e-3, 
+                sen_dsb.data.lino.sel(channel=18), color='k', zorder=1)
         
         ax.axes.get_xaxis().set_ticks([])
         ax.axes.get_yaxis().set_ticks([])

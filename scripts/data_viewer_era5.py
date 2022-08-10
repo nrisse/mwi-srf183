@@ -90,7 +90,7 @@ if __name__ == '__main__':
                  orientation='horizontal')
     fig.colorbar(im4, ax=ax2, orientation='horizontal')
     
-    plt.savefig(path_plot+'era5/era5_surface_variables_large_scale.png', 
+    plt.savefig(path_plot+'data/era5_surface_variables_large_scale.png', 
                 dpi=300, bbox_inches='tight')
         
     #%% PROOF plot state of atmosphere 
@@ -150,7 +150,53 @@ if __name__ == '__main__':
         fig.colorbar(im, ax=axes[i], label=label+'\n[kg m$^{-2}$]', 
                      orientation='horizontal', ticks=dct_ticks[hyd])
         
-    plt.savefig(path_plot+'era5/era5_int_hyd.png', dpi=300, 
+    plt.savefig(path_plot+'data/era5_int_hyd.png', dpi=300, 
+                bbox_inches='tight')
+    
+    plt.close('all')
+    
+    #%% surface emissivity
+    map_proj = ccrs.PlateCarree()
+
+    fig, axes = plt.subplots(1, 4, figsize=(6, 3), constrained_layout=True,
+                             subplot_kw=dict(projection=map_proj))
+    
+    for i, ax in enumerate(axes.flatten()):
+        ax.annotate(f'({abc[i]})', xy=(1, 0), xycoords='axes fraction',
+                    ha='right', va='bottom', color='white')
+    
+    gl = axes[0].gridlines(crs=data_proj, linewidth=0, color='k', 
+                      alpha=0.5, draw_labels=True, zorder=2,
+                      x_inline=False, y_inline=False)
+    gl.top_labels = False
+    gl.right_labels = False
+    gl.xlocator = mticker.FixedLocator(np.arange(-180, 180, 1))
+    gl.ylocator = mticker.FixedLocator(np.arange(-90, 90, 2))
+    gl.xlabel_style = {'size': 8}
+    gl.ylabel_style = {'size': 8}
+    
+    freqs = np.array([ds_com.frequency.min(), 183367, ds_com.frequency.max()])
+    for i, freq in enumerate(freqs):
+        
+        axes[i].set_title('%g GHz'%(freq*1e-3))
+        
+        im = axes[i].pcolormesh(
+            ds_com.lon,
+            ds_com.lat, 
+            ds_com.emissivity.sel(frequency=freq).isel(angle=9),
+            cmap='magma')
+        fig.colorbar(im, ax=axes[i], shrink=0.5)
+        
+    axes[3].set_title('Diff')
+    im = axes[3].pcolormesh(
+        ds_com.lon,
+        ds_com.lat, 
+        ds_com.emissivity.sel(frequency=freqs[0]).isel(angle=9) -\
+        ds_com.emissivity.sel(frequency=freqs[2]).isel(angle=9),
+        cmap='magma_r')
+    fig.colorbar(im, ax=axes[3], shrink=0.5)
+    
+    plt.savefig(path_plot+'data/era5_emissivity.png', dpi=300, 
                 bbox_inches='tight')
     
     plt.close('all')

@@ -172,10 +172,14 @@ if __name__ == '__main__':
     
     # top hat function (defined at same frequencies as original SRF)
     srf_tophat = xr.zeros_like(ds_com['srf_orig'])
+    f = srf_tophat.frequency
     for i, (a, b, c, d) in enumerate(mwi.freq_bw_MHz):
-        f = srf_tophat.frequency
         srf_tophat[(f > a) & (f < b), i] = 1
         srf_tophat[(f > c) & (f < d), i] = 1
+    
+    # tophat should be nan, if srf is nan to keep the spacing of 15 MHz in
+    # the tophat srf.
+    srf_tophat = srf_tophat.where(~np.isnan(ds_com['srf_orig']))
     
     # merge the srfs
     ds_com['srf_est'] = xr.concat([

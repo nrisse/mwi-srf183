@@ -1,3 +1,1 @@
 from importer.read_sensitivity import Sensitivity
-from importer.read_sensitivity import Sensitivity_Pandas
-from importer.read_radiosonde import Radiosonde
