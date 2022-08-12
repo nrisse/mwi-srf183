@@ -193,7 +193,7 @@ if __name__ == '__main__':
         ds_com[srf_name] = ds_com[srf_name]/ds_com[srf_name].sum('frequency')
     
     #%% calculate mwi tb
-    srf_vars = [x for x in list(ds_com) if 'srf' in x]
+    srf_vars = [x for x in list(ds_com) if ('srf' in x) and ('dB' not in x)]
     for srf_var in srf_vars:
         tb_mwi_var = srf_var.replace('srf', 'tb_mwi')
         ds_com[tb_mwi_var] = (ds_com[srf_var] * 

@@ -214,39 +214,117 @@ and caused a larger bandpass effect.
 # Overview of scripts
 ├── bandpass_measurement
 │   ├── __init__.py
-│   ├── plot_bandpass_measurement.py -- various plots and statistics of srf
-│   ├── plot_frequencies.py -- helper script to quickly check where frequencies are located of the two sensitivity datasets and for the PAMTRA simulation
-│   ├── plot_perturbations.py -- plots systematic perturbations
-│   ├── plot_reference_tb_overview.py -- makes small figures for presentation showing reference frequency
-│   └── srf_analysis.py -- some analysis on the srf measurements (not needed for report)
-├── data_viewer_era5.py -- plot atmospheric data from era-5 (hydrometeors) and emissivity on map
-├── evaluation_dtb_mwi_est_era5_grid.py -- evaluation of bandpass effect from era-5 (map)
-├── evaluation_dtb_mwi_est.py -- evaluation of bandpass effect from radiosondes and era-5 together or just radiosondes
-├── evaluation_srf_perturbation.py -- evaluation of perturbations on bandpass effect
-├── evaluation_srf_reduced_sampling.py -- evaluation of reduced srf sampling on bandpass effect
+│   ├── plot_bandpass_measurement.py
+
+various plots and statistics of srf
+
+│   ├── plot_frequencies.py
+
+helper script to quickly check where frequencies are located of the two 
+sensitivity datasets and for the PAMTRA simulation
+
+│   ├── plot_perturbations.py
+
+plots systematic perturbations
+
+│   ├── plot_reference_tb_overview.py
+
+makes small figures for presentation showing reference frequency
+
+│   └── srf_analysis.py
+
+some analysis on the srf measurements (not needed for report)
+
+├── data_viewer_era5.py
+
+plot atmospheric data from era-5 (hydrometeors) and emissivity on map
+
+├── evaluation_dtb_mwi_est_era5_grid.py
+
+evaluation of bandpass effect from era-5 (map)
+
+├── evaluation_dtb_mwi_est.py
+
+evaluation of bandpass effect from radiosondes and era-5 together or just 
+radiosondes
+
+├── evaluation_srf_perturbation.py
+
+evaluation of perturbations on bandpass effect
+
+├── evaluation_srf_reduced_sampling.py
+
+evaluation of reduced srf sampling on bandpass effect
+
 ├── importer
 │   ├── __init__.py
-│   └── read_sensitivity.py -- read srf from excel files to xarray.Dataset
+│   └── read_sensitivity.py
+
+read srf from excel files to xarray.Dataset
+
 ├── __init__.py
 ├── mwi_info
 │   ├── __init__.py
-│   ├── mwi_183.py -- mwi channel specification as numpy arrays
+│   ├── mwi_183.py
+
+mwi channel specification as numpy arrays
+
 ├── pamtra
 │   ├── __init__.py
-│   ├── pamtra_simulation_era5.py -- pamtra simulation for era-5
-│   ├── pamtra_simulation_era5.ipynb -- pamtra simulation for era-5 (same as .py script)
-│   └── pamtra_simulation_radiosondes.ipynb -- pamtra simulation for radiosondes
-│   └── write_frequencies_to_file.py -- writes frequencies for PAMTRA simulation into textfile
+│   ├── pamtra_simulation_era5.py
+
+pamtra simulation for era-5
+
+│   ├── pamtra_simulation_era5.ipynb
+
+pamtra simulation for era-5 (same as .py script)
+
+│   └── pamtra_simulation_radiosondes.ipynb
+
+pamtra simulation for radiosondes
+
+│   └── write_frequencies_to_file.py
+
+writes frequencies for PAMTRA simulation into textfile
+
 ├── path_setter
 │   ├── __init__.py
-│   ├── path.py -- defines directories for plot and data
+│   ├── path.py
+
+defines directories for plot and data
+
 ├── radiosonde
 │   ├── __init__.py
-│   ├── plot_radiosonde_iwv.py -- plot monthly mean+std IWV of radiosondes
-│   ├── plot_radiosonde_t_rh.py -- plot mean temperature and rh of radiosondes
-│   ├── radiosonde_data_availability.py -- plot data availability of radiosonde data
-│   ├── radiosondes_download_wyo.py -- download radiosonde data
-│   └── stations_on_map.py -- plot location of radiosondes and era-5 scene on globe
-├── tb_mwi_calculation.py -- calculation of mwi tb from pamtra simulation, and definition of other srfs/estimates
-├── tb_mwi_cumulative_visualization.py -- some visualization of why some profiles deviate more, and of the tb gradients of the pamtra simulation
-└── tb_spectra.py -- plots tb spectra from pamtra simulations
+│   ├── plot_radiosonde_iwv.py
+
+plot monthly mean+std IWV of radiosondes
+
+│   ├── plot_radiosonde_t_rh.py
+
+plot mean temperature and rh of radiosondes
+
+│   ├── radiosonde_data_availability.py
+
+plot data availability of radiosonde data
+
+│   ├── radiosondes_download_wyo.py
+
+download radiosonde data
+
+│   └── stations_on_map.py
+
+plot location of radiosondes and era-5 scene on globe
+
+├── tb_mwi_calculation.py
+
+calculation of mwi tb from pamtra simulation, and definition of other 
+srfs/estimates
+
+├── tb_mwi_cumulative_visualization.py
+
+some visualization of why some profiles deviate more, and of the tb gradients of 
+the pamtra simulation
+
+└── tb_spectra.py
+
+plots tb spectra from pamtra simulations
