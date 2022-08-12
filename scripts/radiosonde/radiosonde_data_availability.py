@@ -5,7 +5,6 @@ Data availability of the radiosondes
 
 import numpy as np
 import pandas as pd
-import datetime
 import xarray as xr
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -28,7 +27,7 @@ if __name__ == '__main__':
     for station in np.unique(ds_com_rsd.station.values):
         print(f'{station}: {np.sum(ds_com_rsd.station==station).item()/365}')
     
-    #%% PROOF plot data availability
+    #%% plot data availability
     fig, ax = plt.subplots(1, 1, figsize=(5, 2), constrained_layout=True)
     
     ax.set_facecolor('#EB3939')

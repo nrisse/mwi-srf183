@@ -7,6 +7,7 @@ import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from importer import Sensitivity
 from path_setter import path_data, path_plot
+from mwi_info import mwi
 
 
 """
@@ -30,10 +31,14 @@ if __name__ == '__main__':
     plt.plot(sen_dsb.data.frequency*1e-3, 
              [1]*len(sen_dsb.data.frequency), '.r',
              label='MWI-RX183_DSB_Matlab.xlsx', alpha=0.6, markeredgecolor=None)
-    plt.plot(sen.data.frequency, [1]*len(sen.data.frequency), '.b',
+    plt.plot(sen.data.frequency*1e-3, [1]*len(sen.data.frequency), '.b',
              label='MWI-RX183_Matlab.xlsx', alpha=0.6, markeredgecolor=None)
     
+    for f in mwi.freq_bw_center.flatten():
+        plt.axvline(f, color='k')
+    
     plt.axvline(x=183.31, color='gray')
+    plt.axvline(x=183.312, color='lightgray')
     plt.legend()
     plt.grid()
     

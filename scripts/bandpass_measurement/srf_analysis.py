@@ -1,5 +1,5 @@
 """
-Read spectral responds function from excel files to xarray Dataset
+
 """
 
 

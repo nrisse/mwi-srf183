@@ -3,14 +3,12 @@ Show radiosonde launch sites on map
 """
 
 
-import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-
 import numpy as np
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
-
+import os
+import sys
+sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from path_setter import path_plot
 
 
