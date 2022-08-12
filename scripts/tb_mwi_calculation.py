@@ -40,9 +40,9 @@ plt.ion()
 if __name__ == '__main__':
     
     # input file of simulated brightness temperatures
-    #file_tb = 'TB_radiosondes_2019'
+    file_tb = 'TB_radiosondes_2019'
     #file_tb = 'TB_era5_hyd'
-    file_tb = 'TB_era5'
+    #file_tb = 'TB_era5'
     
     # read pamtra simulation of radiosondes
     ds_pam = xr.open_dataset(os.environ['PATH_PHD']+'/projects/mwi_bandpass'+
@@ -180,7 +180,7 @@ if __name__ == '__main__':
     # tophat should be nan, if srf is nan to keep the spacing of 15 MHz in
     # the tophat srf.
     srf_tophat = srf_tophat.where(~np.isnan(ds_com['srf_orig']))
-    
+        
     # merge the srfs
     ds_com['srf_est'] = xr.concat([
         srf_0, srf_1, srf_2, srf_tophat

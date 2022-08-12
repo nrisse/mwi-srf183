@@ -54,6 +54,68 @@ if __name__ == '__main__':
         
         print(f'channel {channel}: {sen_in}|{sen_out}')
         
+    # more details on out-of-band sensitivity
+    for i, channel in enumerate(sen_dsb.data.channel.values):
+        
+        if channel == 18:
+            break
+        
+        ix_l_wing = sen_dsb.data.frequency < mwi.freq_bw_MHz[i, 0]  
+        ix_r_wing = sen_dsb.data.frequency > mwi.freq_bw_MHz[i, 3]                  
+        ix_l_cent = (sen_dsb.data.frequency > mwi.freq_bw_MHz[i, 1]) & \
+                    (sen_dsb.data.frequency < mwi.absorpt_line*1e3) 
+        ix_r_cent = (sen_dsb.data.frequency < mwi.freq_bw_MHz[i, 2]) & \
+                    (sen_dsb.data.frequency > mwi.absorpt_line*1e3) 
+
+        sen_l_wing = np.round(sen_dsb.data.lino.sel(frequency=ix_l_wing, 
+                              channel=channel).sum('frequency').item()*100, 2)
+        sen_r_wing = np.round(sen_dsb.data.lino.sel(frequency=ix_r_wing, 
+                              channel=channel).sum('frequency').item()*100, 2)
+        sen_l_cent = np.round(sen_dsb.data.lino.sel(frequency=ix_l_cent, 
+                              channel=channel).sum('frequency').item()*100, 2)
+        sen_r_cent = np.round(sen_dsb.data.lino.sel(frequency=ix_r_cent, 
+                              channel=channel).sum('frequency').item()*100, 2)
+        
+        print(f'channel {channel}: {sen_l_wing}|{sen_l_cent}-{sen_r_cent}|{sen_r_wing}')
+    
+    #%% cumulative sensitivity within bandpass region
+    fig, axes = plt.subplots(1, 5, constrained_layout=True, sharey=True,
+                             sharex=True)
+    
+    colors = ['skyblue', 'green', 'magenta', 'coral', 'gold']
+    
+    for i, channel in enumerate(sen_dsb.data.channel.values):
+        
+        ax = axes[i]
+        
+        ix_l = ((sen_dsb.data.frequency > mwi.freq_bw_MHz[i, 0]) & \
+                (sen_dsb.data.frequency < mwi.freq_bw_MHz[i, 1]))
+        ix_r = ((sen_dsb.data.frequency > mwi.freq_bw_MHz[i, 2]) & \
+                (sen_dsb.data.frequency < mwi.freq_bw_MHz[i, 3]))
+        
+        sen_cum_l = sen_dsb.data.lino.sel(frequency=ix_l, channel=channel)
+        sen_cum_r = sen_dsb.data.lino.sel(frequency=ix_r, channel=channel)
+            
+        # frequency from outer cutoff frequency to inner
+        sen_cum_l['frequency'] = sen_cum_l['frequency'] - mwi.freq_bw_MHz[i, 0] - 2
+        sen_cum_r['frequency'] = 2 + mwi.freq_bw_MHz[i, 3] - sen_cum_r['frequency']
+        
+        sen_cum_r = sen_cum_r.sel(frequency=np.sort(sen_cum_r.frequency))
+        
+        sen_cum_l = sen_cum_l.cumsum('frequency')
+        sen_cum_r = sen_cum_r.cumsum('frequency')
+        
+        ax.plot(sen_cum_l.frequency, sen_cum_l, color=colors[i], label=channel)
+        ax.plot(sen_cum_r.frequency, sen_cum_r, linestyle='--', color=colors[i])
+        
+        ax.legend()
+
+    for ax in axes[1:]:
+        ax.plot([0, 1500], [0, 0.5], color='k')
+        
+    axes[0].plot([0, 2000], [0, 0.5], color='k')
+    
+    
     #%% PROOF plot sensitivity data (raw, all, log scale)
     fig, axes = plt.subplots(5, 1, sharex='all', figsize=(9, 6))
     axes = axes.flatten(order='F')

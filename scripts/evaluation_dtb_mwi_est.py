@@ -107,7 +107,7 @@ if __name__ == '__main__':
     style = styles[1]
     
     # choose if with or without era-5
-    era5 = True  # this is just as a test to see if clear sky matches
+    era5 = False  # this is just as a test to see if clear sky matches
     
     fig, axes = plt.subplots(5, 4, figsize=(7, 6), sharex=True, sharey=True,
                              constrained_layout=True)

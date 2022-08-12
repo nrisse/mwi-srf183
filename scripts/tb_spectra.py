@@ -1,8 +1,9 @@
 """
-Plot brightness temperature spectrum of radiosonde profiles
-    - annual mean and standard deviation
-
-PROOF
+Plot brightness temperature spectrum of radiosonde profiles and ERA-5
+simulation
+    - all profiles in thin line
+    - mean profiles as thick line
+    - separate subplots for radiosonde locations and ERA-5
 """
 
 
