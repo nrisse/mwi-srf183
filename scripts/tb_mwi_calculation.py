@@ -33,6 +33,7 @@ sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/'+
 from importer import Sensitivity
 from mwi_info import mwi
 from radiosonde import wyo
+from path_setter import path_data
 
 plt.ion()
 
@@ -45,9 +46,7 @@ if __name__ == '__main__':
     #file_tb = 'TB_era5'
     
     # read pamtra simulation of radiosondes
-    ds_pam = xr.open_dataset(os.environ['PATH_PHD']+'/projects/mwi_bandpass'+
-                             '_effects/data/brightness_temperature/'+file_tb+
-                             '.nc')
+    ds_pam = xr.open_dataset(path_data+'brightness_temperature/'+file_tb+'.nc')
     ds_pam.coords['frequency'] = (ds_pam.frequency*1e3).astype('int')
     
     # new dataset to combine with srfs
@@ -207,8 +206,7 @@ if __name__ == '__main__':
         ds_com[dtb_mwi_var] = ds_com['tb_mwi_orig'] - ds_com[tb_mwi_var]
         
     #%% write result to file
-    ds_com.to_netcdf(os.environ['PATH_PHD']+'/projects/mwi_bandpass_effects/'+
-                     'data/brightness_temperature/'+file_tb+'_MWI.nc')
+    ds_com.to_netcdf(path_data+'brightness_temperature/'+file_tb+'_MWI.nc')
     
     #%%
     plt.close('all')
