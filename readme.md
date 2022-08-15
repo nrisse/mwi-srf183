@@ -1,3 +1,5 @@
+Last modified: 2022-08-15
+
 # Introduction
 This document describes the required steps to reproduce the results presented in 
 the report
@@ -14,9 +16,9 @@ The general approach for the study is to simulate the brightness temperature
 (TB) with high spectral resolution under MWI observing conditions (altitude, 
 incidence angle, polarization) of different atmospheric conditions. This 
 spectral TB is then weighted with the measured spectral response function (SRF), 
-which corresponds to the virtual MWI observation. If one would not have access 
+to calculate the virtual MWI observation. If one would not have access 
 to the SRF, the MWI observation gets estimated either using a tophat function 
-over the bandpass or by averaging the TB at two center frequencies of every 
+over the bandpass or by averaging the TB at e.g. two center frequencies of every 
 channel. This was done in the study as well, and the deviation from the virtual 
 observation based on the SRF was analyzed. Different scenarios are compared in 
 the end under clear-sky and cloudy conditions. In addition, the measured SRF 
@@ -39,15 +41,15 @@ on. (2020-07-08)
 After a meeting with Susanne Crewell, Christophe Accadia, Vinia Mattioli, and 
 Francesco De Angelis, the study design was further refined. Main focus was put 
 on three points: vary the noise error, add third estimate of MWI TB (center+
-cutoff together), analyze cloud interaction (ERA-5). Minor docus on four points: 
+cutoff together), analyze cloud interaction (ERA-5). Minor focus on four points: 
 reduce number of SRF measurements, compare different idealized RH levels using 
 the standard atmosphere, analyze more profiles, visualize bandpass effect as 
 function of IWV.
 
 After the first presentation at the SAG meeting, it was decided that the 
 Gaussian noise perturbation on the SRF is not easy to interpret and offsets
-mostly cancel out. It was decided to aim for worst-case scenarios, e.g. 
-correlated errors. Results of the updates perturbation study will be presented 
+mostly cancel out. It was decided to aim for worst-case scenarios by using
+correlated errors. Results of the updated perturbation study will be presented 
 at the next SAG meeting.
 
 After a discussion with Susanne Crewell and Ulf Klein (2020-12-02), it was 
@@ -60,7 +62,7 @@ effect on the TB and is hard to interpret.
 In the presentations, the radiosonde profiles were simulated with a surface 
 emissivity of 0.6. This was changed to 0.9 in the final report, since this value 
 is more realistic for water surfaces. This change had an effect only at low IWV 
-and caused a larger bandpass effect.
+and caused a smaller bandpass effect for Arctic radiosonde profiles.
 
 ## Reports and presentations
 ### 2020-09-22: Short summary of work
@@ -70,8 +72,8 @@ and caused a larger bandpass effect.
 ### 2020-11-12: Presentation at MWI-ICI SAG meeting
 - for this presentation, an emissivity of 0.6 was used for the radiosonde 
   forward simulations, which caused offsets to the ERA-5 simulation. To be more
-  consistent, the report uses an emissivity of 0.9. This changed the bandpass 
-  effect for low IWV (generally lower bandpass effect!).
+  consistent, the final report uses an emissivity of 0.9. This changed the 
+  bandpass effect for low IWV (generally lower bandpass effect!).
 - SRF perturbations were Gaussian noise, which mostly cancels out.
 - increase of SRF sampling interval was presented and is also in final report.
 - IWV-dependence was presented.
@@ -100,12 +102,18 @@ and caused a larger bandpass effect.
   study design).
 
 # Reproduction of study results
+## Folder structure
+- ./data: all data and derived products
+- ./doc: documents such as reports and presentations
+- ./plots: plot results
+- ./scripts: code for analysis and PAMTRA simulation
+
 ## Programming environment
 - setup python environment for the analysis as specified in the environment.yml 
   or spec-file.txt
 - setup python environment for PAMTRA simulation (python3)
 - set environment variable which defines the base directory (currently PATH_PHD 
-  variable)
+  variable, also used in PAMTRA simulations directly)
 
 ## Data
 ### Radiosondes
@@ -114,11 +122,11 @@ and caused a larger bandpass effect.
 - check .xls file for station list
 
 ### ERA-5
-- single levels (era5-single-levels_20150331_1200.nc) and pressure levels 
-  (era5-pressure-levels_20150331_1200.nc)
+- single levels (era5-single-levels_20150331_1200.nc)
+- pressure levels (era5-pressure-levels_20150331_1200.nc)
 
 ### SRF
-- two excel files provided by esa
+- two excel files provided by ESA
   - MWI-RX183_DSB_Matlab.xlsx: original measured SRF in dB, maximum value is 
     0 dB for every channel. Frequency range for channel 14 likely too short!
   - MWI-RX183_Matlab.xlsx: original measured SRF in dB. Only frequencies above 
@@ -126,16 +134,16 @@ and caused a larger bandpass effect.
 
 ## PAMTRA simulations
 - create file with frequencies used for PAMTRA simulations (frequencies.txt) 
-  using write_frequencies_to_file.txt
+  using ./scripts/pamtra/write_frequencies_to_file.py
 - install PAMTRA from github repository and follow the instructions
-- run pamtra_simulation_era.py with python3 (needs read_era5.py and a tool to 
-  write pamtra output to netcdf which is in pamtra_model/tools directory). This 
+- run pamtra_simulation_era.py with python3 (tool in ./scripts/pamtra/tools to
+  write pamtra output to netcdf). This 
   script is equivalent to the pamtra_simulation_era5.ipynb. Run once with and 
   once without hydrometeors and adapt the file name of the output file manually.
-- run pamtra_simulation_radiosondes.ipynb (needs a tool to write pamtra output 
-  to netcdf, which is in pamtra_model/tools directory). A dimension for the 
+- run pamtra_simulation_radiosondes.ipynb (tool in ./scripts/pamtra/tools to
+  write pamtra output to netcdf). A dimension for the 
   radiosonde profile is created already, and will be in the next step completed 
-  by extracting the date and station name
+  by extracting the date and station name.
 - finally, two files are written for each simulation. One file contains many 
   variables provided by PAMTRA, the other file is reduced for the downstream 
   analysis. All files are initially written to work directory. The two reduced 
@@ -164,49 +172,45 @@ and caused a larger bandpass effect.
     obs_height, ...)
 
 # Reproduce the figures
-## Basic scripts needed for all figures
+## Basic scripts needed for multiple figures
+- script to read sensitivity data: importer/read_sensitivity.py --> read 
+  sensitivity to xarray.Dataset from one of the two .xlsx files. Raw and 
+  linearized and normalized SRF is written to xarray.Dataset
 - mwi_info/mwi_183.py: contains MWI channel specifications and labels (mwi)
 - path_setter/path.py: defines paths where data and figures are stored 
   (path_data, path_plot)
 
 ## Figure 1: bandpass data
-- script to read sensitivity data: importer/read_sensitivity.py --> read 
-  sensitivity to xarray.Dataset from one of the two .xlsx files. Raw and 
-  linearized and normalized SRF is written to xarray.Dataset
+- plot_bandpass_measurement.py, line 489
 
 ## Figure 2: era-5 integrated hydrometeors
-- data_viewer_era5.py
+- data_viewer_era5.py, line 96
 
 ## Figure 3: tb spectra
-- tb_spectra.py
-- basic scripts are imported
-- only parts of the script are needed
+- tb_spectra.py, line 61
 
 ## Figure 4: systematic srf errors
 - bandpass_measurements/plot_perturbations.py
-- only parts of the script are needed
+- line 147
 
 ## Figure 5: bandpass effect clear-sky as a function of TBobs
-- evaluation_dtb_mwi_est.py
-- run only some parts of the script
+- evaluation_dtb_mwi_est.py, line 101
 
 ## Figure 6: bandpass effect clear-sky as a function of IWV
-- evaluation_dtb_mwi_est.py
-- run only some parts of the script
+- evaluation_dtb_mwi_est.py, line 214
 
 ## Figure 7: influence of hydrometeors on bandpass effect
-- evaluation_dtb_mwi_est_era5_grid.py
-- only some parts of the script
+- evaluation_dtb_mwi_est_era5_grid.py, line 119
 
 ## Figure 8: effect of systematic perturbations
-- evaluation_srf_perturbation.py
+- evaluation_srf_perturbation.py, entire script
 
 ## Figure 9: effect of sampling interval reduction
-- evaluation_srf_reduced_sampling.py
+- evaluation_srf_reduced_sampling.py, entire script
 
 # Additional scripts used for written information
 - spectral TB gradients and differences described in forward simulation chapter 
-  come from: tb_mwi_cumulative_visualization.py
+  come from tb_mwi_cumulative_visualization.py
 - SRF out-of-band sensitivity: plot_bandpass_measurement.py
 - SRF imbalance: plot_bandpass_measurement.py
 

@@ -93,7 +93,7 @@ if __name__ == '__main__':
     plt.savefig(path_plot+'data/era5_surface_variables_large_scale.png', 
                 dpi=300, bbox_inches='tight')
         
-    #%% PROOF plot state of atmosphere 
+    #%% plot state of atmosphere 
     map_proj = ccrs.PlateCarree()
 
     fig, axes = plt.subplots(1, 4, figsize=(6, 4), constrained_layout=True,
