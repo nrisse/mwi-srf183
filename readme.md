@@ -114,6 +114,9 @@ and caused a smaller bandpass effect for Arctic radiosonde profiles.
 - setup python environment for PAMTRA simulation (python3)
 - set environment variable which defines the base directory (currently PATH_PHD 
   variable, also used in PAMTRA simulations directly)
+- all scripts are available in the github repository
+  https://github.com/nrisse/MWI-bandpass
+  
 
 ## Data
 ### Radiosondes
