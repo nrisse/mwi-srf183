@@ -18,7 +18,7 @@ plt.ion()
 
 if __name__ == '__main__':
     
-    #%% read nc files
+    # read nc files
     ds_com_rsd = xr.open_dataset(
         path_data+'brightness_temperature/TB_radiosondes_2019_MWI.nc')
 

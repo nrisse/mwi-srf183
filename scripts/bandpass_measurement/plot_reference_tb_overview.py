@@ -8,91 +8,67 @@ import sys
 sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 import numpy as np
 import matplotlib.pyplot as plt
+import xarray as xr
 
-from path_setter import path_plot
+from path_setter import path_data, path_plot
 from mwi_info import mwi
-from importer import Sensitivity
+
+plt.ion()
 
 
 if __name__ == '__main__':
     
-    sen_dsb = Sensitivity(filename='MWI-RX183_DSB_Matlab.xlsx')
+    # read combined dataset with the different SRF
+    ds_com = xr.open_dataset(
+        path_data+'brightness_temperature/TB_radiosondes_2019_MWI.nc')
     
-    i = 2
+    #%% plot srf and the estimate frequencies together
+    channel = 18
     
-    #%%
-    fig = plt.figure(figsize=(5, 2))
-    ax = fig.add_subplot()
-    ax.set_title('Channel MWI-16')
-    ax.plot(sen_dsb.data.frequency*1e-3, 
-            sen_dsb.data.lino.sel(channel=16), color='k', zorder=1)
+    fig, ax = plt.subplots(1, 1, figsize=(8, 3), constrained_layout=True)
     
-    # add vertical lines    
-    for j in range(2):  # mark left/right channel frequency
-        ax.axvline(x=mwi.freq_center[i, j], color='red', linestyle='-', zorder=2)
+    ax.spines.top.set_visible(False)
+    ax.spines.right.set_visible(False)
     
-    for j in range(4):  # mark each bandwidth edge
-        ax.axvline(x=mwi.freq_bw[i, j], color='blue', linestyle='-', zorder=2)
+    # original srf
+    f = dict(frequency=~np.isnan(ds_com.srf_orig.sel(channel=channel)))
+    ax.plot(ds_com.frequency.sel(**f)*1e-3, 
+            ds_com.srf_orig.sel(channel=channel, **f)*1e2, color='coral',
+            label='measured SRF', zorder=0)
+        
+    # center frequency (matches top-hat without scaling, because top-hat has 100 
+    # values on each bandpass)
+    dct_est_types = {
+        'freq_center': 
+            dict(label=r'center ($10^{-2}$)', 
+                 marker='o'), 
+        'freq_bw': 
+            dict(label=r'cutoff ($10^{-2}$)', 
+                 marker='s'), 
+        'freq_bw_center': 
+            dict(label=r'center+cutoff ($10^{-2}$)', 
+                 marker='D'),
+        }
     
-    # add shade for each channel
-    ax.axvspan(xmin=mwi.freq_bw[i, 0], xmax=mwi.freq_bw[i, 1], ymin=-10e3, ymax=10e3, color='gray',
-                    alpha=0.2, zorder=0)
-    ax.axvspan(xmin=mwi.freq_bw[i, 2], xmax=mwi.freq_bw[i, 3], ymin=-10e3, ymax=10e3, color='gray',
-                    alpha=0.2, zorder=0)
+    for est_type, kwds in dct_est_types.items():
+        ax.scatter(
+            ds_com.frequency*1e-3, 
+            ds_com.srf_est.sel(channel=channel, est_type=est_type), 
+            zorder=2, color='slategray', **kwds)
+        
+    # top-hat function
+    ax.plot(ds_com.frequency.sel(**f)*1e-3, 
+            ds_com.srf_est.sel(channel=channel, est_type='top-hat', **f)*1e2, 
+            color='skyblue', label='top-hat', zorder=1)
     
-    ax.grid()
+    ax.legend(frameon=False, bbox_to_anchor=(1, 0.5), loc='center left')
     
-    ax.set_xlim([np.min(mwi.freq_bw)-0.1, np.max(mwi.freq_bw)+0.1])
-    ax.set_yticks([])
+    ax.set_xlim(mwi.absorpt_line-4, mwi.absorpt_line+4)
     
     ax.set_xlabel('Frequency [GHz]')
-    ax.set_ylabel('Sensitivity')
-    
-    plt.subplots_adjust(bottom=0.3, left=0.07, right=0.99, top=0.85)
-    
-    plt.savefig(path_plot + 'bandpass_measurement/freq_location.png', dpi=200)
-    
-    #%% overview for reference tbs
-    i = 4
-    def fig_maker():
-        fig = plt.figure(figsize=(2, 0.75))
-        ax = fig.add_subplot()
-        ax.plot(sen_dsb.data.frequency*1e-3, 
-                sen_dsb.data.lino.sel(channel=18), color='k', zorder=1)
+    ax.set_ylabel('Sensitivity [%]')
         
-        ax.axes.get_xaxis().set_ticks([])
-        ax.axes.get_yaxis().set_ticks([])
-        
-        # add shade for each channel
-        ax.axvspan(xmin=mwi.freq_bw[i, 0], xmax=mwi.freq_bw[i, 1], ymin=-10e3, ymax=10e3, color='#bbbbbb', zorder=0)
-        ax.axvspan(xmin=mwi.freq_bw[i, 2], xmax=mwi.freq_bw[i, 3], ymin=-10e3, ymax=10e3, color='#bbbbbb', zorder=0)
-        
-        plt.subplots_adjust(bottom=0.03, left=0.03, right=0.97, top=0.97)
-        
-        ax.set_xlim([mwi.absorpt_line-3, mwi.absorpt_line+3])
-        ax.set_ylim(bottom=0)
+    plt.savefig(path_plot + 'bandpass_measurement/estimate_frequencies.svg',
+                bbox_inches='tight')
     
-        return fig, ax
-    
-    
-    # add vertical lines
-    # CENTER
-    fig, ax = fig_maker()
-    for j in range(2):  # mark left/right channel frequency
-        ax.axvline(x=mwi.freq_center[i, j], color='red', linestyle='-', zorder=2, linewidth=2)
-    plt.savefig(path_plot + 'bandpass_measurement/loc_center.png', dpi=200)
-    
-    # BANDWIDTH
-    fig, ax = fig_maker()
-    for j in range(4):  # mark each bandwidth edge
-        ax.axvline(x=mwi.freq_bw[i, j], color='red', linestyle='-', zorder=2, linewidth=2)
-    plt.savefig(path_plot + 'bandpass_measurement/loc_bw.png', dpi=200)
-    
-    # BOTH
-    fig, ax = fig_maker()
-    for j in range(2):  # mark left/right channel frequency
-        ax.axvline(x=mwi.freq_center[i, j], color='red', linestyle='-', zorder=2, linewidth=2)
-    for j in range(4):  # mark each bandwidth edge
-        ax.axvline(x=mwi.freq_bw[i, j], color='red', linestyle='-', zorder=2, linewidth=2)
-    plt.savefig(path_plot + 'bandpass_measurement/loc_bw_center.png', dpi=200)
-   
+    plt.close('all')

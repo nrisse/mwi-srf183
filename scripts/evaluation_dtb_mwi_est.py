@@ -107,7 +107,7 @@ if __name__ == '__main__':
     style = styles[1]
     
     # choose if with or without era-5
-    era5 = False  # this is just as a test to see if clear sky matches
+    era5 = True  # this is just as a test to see if clear sky matches
     
     fig, axes = plt.subplots(5, 4, figsize=(7, 6), sharex=True, sharey=True,
                              constrained_layout=True)
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     axes[0, 0].annotate('center', **kwargs)
     axes[0, 1].annotate('cutoff', **kwargs)
     axes[0, 2].annotate('center+cutoff', **kwargs)
-    axes[0, 3].annotate('tophat', **kwargs)
+    axes[0, 3].annotate('top-hat', **kwargs)
     
     for i, ax in enumerate(axes.flatten('F')):
         
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     
     for i, channel in enumerate(mwi.channels_int):
         for j, est_type in enumerate(['freq_center', 'freq_bw', 
-                                      'freq_bw_center', 'tophat']):
+                                      'freq_bw_center', 'top-hat']):
             
             if style == 'tb_obs':
                 x = ds_com_rsd.tb_mwi_orig.sel(channel=channel)
@@ -230,7 +230,7 @@ if __name__ == '__main__':
     axes[0, 0].annotate('center', **kwargs)
     axes[0, 1].annotate('cutoff', **kwargs)
     axes[0, 2].annotate('center+cutoff', **kwargs)
-    axes[0, 3].annotate('tophat', **kwargs)
+    axes[0, 3].annotate('top-hat', **kwargs)
     
     for i, ax in enumerate(axes.flatten('F')):
         
@@ -264,7 +264,7 @@ if __name__ == '__main__':
     
     for i, channel in enumerate(mwi.channels_int):
         for j, est_type in enumerate(['freq_center', 'freq_bw', 
-                                      'freq_bw_center', 'tophat']):
+                                      'freq_bw_center', 'top-hat']):
             
             c_max = np.max(np.fabs(ds_com_rsd.dtb_mwi_est.sel(channel=channel,
                                          est_type=est_type)))

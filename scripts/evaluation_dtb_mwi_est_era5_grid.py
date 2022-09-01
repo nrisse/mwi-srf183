@@ -54,8 +54,8 @@ if __name__ == '__main__':
     ds_com = ds_com_era
     ext = ''
     
-    ds_com = ds_com_erh
-    ext = '_hyd'
+    #ds_com = ds_com_erh
+    #ext = '_hyd'
     
     fig, axes = plt.subplots(4, 5, figsize=(6, 6), 
                              sharex=True, sharey=True,
@@ -78,7 +78,7 @@ if __name__ == '__main__':
     axes[0, -1].annotate('center', **kwargs)
     axes[1, -1].annotate('cutoff', **kwargs)
     axes[2, -1].annotate('center+cutoff', **kwargs)
-    axes[3, -1].annotate('tophat', **kwargs)
+    axes[3, -1].annotate('top-hat', **kwargs)
     
     for i, ax in enumerate(axes.flatten('F')):
         ax.set_extent(extent, crs=data_proj)
@@ -138,7 +138,7 @@ if __name__ == '__main__':
     axes[0, -1].annotate('center', **kwargs)
     axes[1, -1].annotate('cutoff', **kwargs)
     axes[2, -1].annotate('center+cutoff', **kwargs)
-    axes[3, -1].annotate('tophat', **kwargs)
+    axes[3, -1].annotate('top-hat', **kwargs)
     
     for i, ax in enumerate(axes.flatten('F')):
         ax.set_extent(extent, crs=data_proj)

@@ -29,7 +29,7 @@ if __name__ == '__main__':
         path_data+'brightness_temperature/TB_era5_hyd_MWI.nc')
     ds_com_erh = ds_com_erh.stack({'profile': ('grid_x', 'grid_y')})
     
-    #%% calculate cumulative TB mwi for tophat and for orig srf
+    #%% calculate cumulative TB mwi for top-hat and for orig srf
     # radiosondes
     ds_com_rsd['tb_mwi_cum_orig'] = (ds_com_rsd.srf_orig * ds_com_rsd['tb'].
                                      isel(angle=9)).cumsum('frequency')
@@ -53,8 +53,8 @@ if __name__ == '__main__':
     
     #%% overview plot
     # tb 
-    # srf + tophat
-    # cumulative tb srf + tb tophat
+    # srf + top-hat
+    # cumulative tb srf + tb top-hat
     
     # choose a dataset, channel and profile
     ds_com = ds_com_rsd
@@ -80,7 +80,7 @@ if __name__ == '__main__':
             axes[0].fill_between(
                 x=ds_com.frequency*1e-3,
                 y1=0,
-                y2=ds_com.srf_est.sel(channel=channel, est_type='tophat')*1e9
+                y2=ds_com.srf_est.sel(channel=channel, est_type='top-hat')*1e9
                 )
             
             # tb
@@ -90,7 +90,7 @@ if __name__ == '__main__':
             ylim_values = ds_com.tb.isel(
                 angle=9, 
                 profile=i_profile, 
-                frequency=ds_com.srf_est.sel(channel=channel, est_type='tophat') > 0)
+                frequency=ds_com.srf_est.sel(channel=channel, est_type='top-hat') > 0)
             axes[0].set_ylim(ylim_values.min('frequency'), ylim_values.max('frequency'))
             
             axes[1].plot(ds_com.frequency*1e-3,
@@ -98,8 +98,8 @@ if __name__ == '__main__':
                     label='srf',
                     )
             axes[1].plot(ds_com.frequency*1e-3,
-                    ds_com.srf_est.sel(channel=channel, est_type='tophat')*100,
-                    label='tophat',
+                    ds_com.srf_est.sel(channel=channel, est_type='top-hat')*100,
+                    label='top-hat',
                     )
             
             axes[2].plot(ds_com.frequency*1e-3,
@@ -109,9 +109,9 @@ if __name__ == '__main__':
             
             axes[2].plot(ds_com.frequency*1e-3,
                     ds_com.tb_mwi_cum_est.sel(channel=channel,
-                                              est_type='tophat',
+                                              est_type='top-hat',
                                               profile=profile),
-                    label='tophat',
+                    label='top-hat',
                     marker='.')
             
             axes[1].legend()
@@ -119,7 +119,7 @@ if __name__ == '__main__':
             # annotate difference
             dtb = np.round(ds_com.dtb_mwi_est.sel(
                 channel=channel,
-                est_type='tophat',
+                est_type='top-hat',
                 profile=profile).item(), 2)
             
             axes[0].annotate(f'{dtb} K', xy=(0.5, 0.5), xycoords='axes fraction',

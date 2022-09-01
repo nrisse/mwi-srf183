@@ -76,7 +76,7 @@ if __name__ == '__main__':
     err_type_c = {
         'linear1': '#577590', 
         'imbalance1': '#f3722c', 
-        'ripple1': '#90be6d',
+        'sine1': '#90be6d',
         }
     
     #%% histogram of absolute difference and dependence on magnitude

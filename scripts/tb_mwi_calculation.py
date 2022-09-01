@@ -14,7 +14,7 @@ Future interesting thing:
 
 Implemented SRF:
     - original
-    - tophat
+    - top-hat
     - freq center
     - freq bw
     - freq bw center
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     #file_tb = 'TB_era5_hyd'
     #file_tb = 'TB_era5'
     
-    # read pamtra simulation of radiosondes
+    # read pamtra simulation
     ds_pam = xr.open_dataset(path_data+'brightness_temperature/'+file_tb+'.nc')
     ds_pam.coords['frequency'] = (ds_pam.frequency*1e3).astype('int')
     
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # perturbed = raw + residual
     err_types = ['linear1', 'linear2', 
                   'imbalance1', 'imbalance2', 
-                  'ripple1', 'ripple2']
+                  'sine1', 'sine2']
     offset_magnitude = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 1.5, 2.0])
     
     ds_srf_err = xr.Dataset()
@@ -127,7 +127,7 @@ if __name__ == '__main__':
                 if k == 1:  # right
                     ds_srf_err.srf_err_offset_dB[ix, i, j, 3] = magn
     
-                # define new ripples
+                # define new ripples using sine curve
                 ds_srf_err.srf_err_offset_dB[ix, i, j, 4] = -magn*np.sin(
                     np.linspace(0, 2*np.pi, len(ix))) * y[k]
                 ds_srf_err.srf_err_offset_dB[ix, i, j, 5] = magn*np.sin(
@@ -170,21 +170,21 @@ if __name__ == '__main__':
         )
     
     # top hat function (defined at same frequencies as original SRF)
-    srf_tophat = xr.zeros_like(ds_com['srf_orig'])
-    f = srf_tophat.frequency
+    srf_top_hat = xr.zeros_like(ds_com['srf_orig'])
+    f = srf_top_hat.frequency
     for i, (a, b, c, d) in enumerate(mwi.freq_bw_MHz):
-        srf_tophat[(f > a) & (f < b), i] = 1
-        srf_tophat[(f > c) & (f < d), i] = 1
+        srf_top_hat[(f > a) & (f < b), i] = 1
+        srf_top_hat[(f > c) & (f < d), i] = 1
     
-    # tophat should be nan, if srf is nan to keep the spacing of 15 MHz in
-    # the tophat srf.
-    srf_tophat = srf_tophat.where(~np.isnan(ds_com['srf_orig']))
+    # top-hat should be nan, if srf is nan to keep the spacing of 15 MHz in
+    # the top-hat srf.
+    srf_top_hat = srf_top_hat.where(~np.isnan(ds_com['srf_orig']))
         
     # merge the srfs
     ds_com['srf_est'] = xr.concat([
-        srf_0, srf_1, srf_2, srf_tophat
+        srf_0, srf_1, srf_2, srf_top_hat
         ], dim=pd.Index(['freq_center', 'freq_bw', 'freq_bw_center',
-                         'tophat'
+                         'top-hat'
                          ], name='est_type'))
     
     #%% normalize all srf

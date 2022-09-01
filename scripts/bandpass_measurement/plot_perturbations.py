@@ -21,6 +21,26 @@ if __name__ == '__main__':
     # cause gaps in the lines
     ds_com = ds_com.sel(frequency=~np.isnan(ds_com.srf_orig.sel(channel=14).values))
     
+    #%% get imbalance of perturbations
+    for i, channel in enumerate(ds_com.channel.values):
+        
+        for magnitude in ds_com.magnitude.values:
+            
+            left = np.round(ds_com.srf_err.sel(
+                frequency=(ds_com.srf_err.frequency < 183310),
+                err_type='imbalance2',
+                magnitude=magnitude,
+                channel=channel).sum('frequency').item()*100, 1)
+            right = np.round(ds_com.srf_err.sel(
+                frequency=(ds_com.srf_err.frequency > 183310),
+                err_type='imbalance2',
+                magnitude=magnitude,
+                channel=channel).sum('frequency').item()*100, 1)
+            
+            print(f'channel {channel} ({magnitude}): {left} | {right}')
+            
+        print('\n')
+    
     #%% plot settings
     cols = ['#577590', '#577590',
             '#f3722c', '#f3722c',
