@@ -10,12 +10,11 @@ from string import ascii_lowercase as abc
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from importer import Sensitivity
+from io import Sensitivity
 from mwi_info import mwi
-from path_setter import path_plot
+from dotenv import load_dotenv
 
+load_dotenv()
 plt.ion()
 
 
@@ -193,12 +192,14 @@ if __name__ == '__main__':
     axes[2, 0].set_ylabel('Sensitivity [dB]')
     axes[-1, 0].set_xlabel('Frequency [GHz]')
     
-    plt.savefig(path_plot+'bandpass_measurement/srf.png', 
-                dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'bandpass_measurement/srf.png'), 
+        dpi=300, bbox_inches='tight')
     
     plt.close('all')
 
-    #%% PROOF plot sensitivity data (raw, dsb, log scale)
+    #%% plot sensitivity data (raw, dsb, log scale)
     fig, axes = plt.subplots(5, 1, sharex=True, sharey=True, figsize=(6, 5))
     
     for ax in axes:
@@ -246,10 +247,12 @@ if __name__ == '__main__':
     axes[2].set_ylabel('Sensitivity [dB]')
     axes[-1].set_xlabel('Frequency [GHz]')
         
-    plt.savefig(path_plot + 'bandpass_measurement/bandpass_measurement_dsb.png', 
-                bbox_inches='tight', dpi=300)
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'bandpass_measurement/bandpass_measurement_dsb.png'),
+        bbox_inches='tight', dpi=300)
     
-    #%% PROOF plot sensitivity data (lino, dsb, lin scale)
+    #%% plot sensitivity data (lino, dsb, lin scale)
     fig, axes = plt.subplots(5, 1, sharex='all', figsize=(6, 6))
     axes = axes.flatten(order='F')
     
@@ -304,9 +307,11 @@ if __name__ == '__main__':
     axes[2].set_ylabel('Sensitivity [%]')
     axes[-1].set_xlabel('Frequency [GHz]')
         
-    plt.savefig(path_plot + 'bandpass_measurement/bandpass_measurement_dsb_lino.png', dpi=300)
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'bandpass_measurement/bandpass_measurement_dsb_lino.png'), dpi=300)
 
-    #%% PROOF plot all linearized SRF with reduction of measurement points
+    #%% plot all linearized SRF with reduction of measurement points
     pd.options.mode.chained_assignment = None 
     reduction_levels = np.arange(1, 6, 1)
     
@@ -383,7 +388,10 @@ if __name__ == '__main__':
     axes[2].set_ylabel('Sensitivity')
     axes[-1].set_xlabel('Frequency [GHz]')
         
-    plt.savefig(path_plot + 'bandpass_measurement/bandpass_measurement_dsb_lino_data_reduction.png', dpi=300)
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'bandpass_measurement/bandpass_measurement_dsb_lino_data_reduction.png'), 
+        dpi=300)
     
     #%% calculate top-hat function
     sen_dsb.data['top-hat'] = xr.zeros_like(sen_dsb.data.lino)
@@ -498,7 +506,9 @@ if __name__ == '__main__':
     #axes2[1, -1].set_ylabel('Sensitivity [dB]', color='skyblue')
     axes[1, 0].set_xlabel('Frequency [GHz]')
         
-    plt.savefig(path_plot+'bandpass_measurement/bandpass_measurement_dsb_lino_zoom.png', 
-                bbox_inches='tight', dpi=300)
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'bandpass_measurement/bandpass_measurement_dsb_lino_zoom.png'), 
+        bbox_inches='tight', dpi=300)
 
     plt.close('all')

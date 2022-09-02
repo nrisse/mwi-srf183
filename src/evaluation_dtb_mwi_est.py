@@ -1,32 +1,6 @@
 """
-DESCRIPTION
-
-Evaluation of delta_tb depending on the IWV of the radiosonde profiles
-
-srf:
-    - orig
-    - estimates
-
-new finding: for low IWV, this depends strongly on the surface emissivity.
-At emissivity of 0.6, differences can become very large
-
-RESULT
-the IWV explains the error for the channel very well, except for channel 18 (closest to maximum)
-for this, temperature can be included
-
-differences in the calculation method ....
-
-under clear-sky conditions the deviation from MWI measurement and model
-simulation at the MWI-frequencies can be corrected if the IWV of the atmosphere
-measured by MWI is known
-
-how do clouds influence this pattern? Suggestion: ice clouds strongly perturb 
-the simple pattern. Thin liquid clouds may not change the result
-
-PROOF
-
-Clean up the code, remove figures which are not needed or do not tell additional
-information!
+Comparison of virtual MWI observation with estimates based on a top-hat SRF
+and selected frequencies.
 """
 
 
@@ -41,7 +15,6 @@ sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts
 from mwi_info import mwi
 from radiosonde import wyo
 from path_setter import path_plot, path_data
-
 
 plt.ion()
 

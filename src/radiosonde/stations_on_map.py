@@ -7,9 +7,10 @@ import numpy as np
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from path_setter import path_plot
+from dotenv import load_dotenv
+
+load_dotenv()
+plt.ion()
 
 
 if __name__ == '__main__':
@@ -51,7 +52,9 @@ if __name__ == '__main__':
         ax.annotate(text=loc, xy=ax.projection.transform_point(x, y, crs), 
                     va='top', ha='left')
     
-    plt.savefig(path_plot + '/data/map_soundings_era5.png', dpi=300,
-                bbox_inches='tight')
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'], 'data/map_soundings_era5.png'), 
+        dpi=300, bbox_inches='tight')
+    
     plt.close()
     

@@ -7,10 +7,10 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from path_setter import path_data
 from mwi_info import mwi
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Sensitivity:
@@ -55,7 +55,8 @@ class Sensitivity:
         """
         
         # read data from excel sheet
-        file = path_data + 'sensitivity/' + filename
+        file = os.path.join(
+            os.environ['PATH_SRF'], filename)
         data_ch14 = pd.read_excel(file, sheet_name='Ch14', usecols=[0, 1],
                                   names=['frequency [GHz]', 'sensitivity [dB]'], 
                                   header=None)

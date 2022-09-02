@@ -13,11 +13,10 @@ import xarray as xr
 import cartopy.crs as ccrs
 from string import ascii_lowercase as abc
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from mwi_info import mwi
-from path_setter import path_data, path_plot
+from dotenv import load_dotenv
 
+load_dotenv()
 plt.ion()
 
 
@@ -25,11 +24,14 @@ if __name__ == '__main__':
     
     # read brightness temperatures
     ds_com_rsd = xr.open_dataset(
-        path_data+'brightness_temperature/TB_radiosondes_2019_MWI.nc')
+        os.path.join(os.environ['PATH_BRT'],
+                     'TB_radiosondes_2019_MWI.nc'))
     ds_com_era = xr.open_dataset(
-        path_data+'brightness_temperature/TB_era5_MWI.nc')
+        os.path.join(os.environ['PATH_BRT'],
+                     'TB_era5_MWI.nc'))
     ds_com_erh = xr.open_dataset(
-        path_data+'brightness_temperature/TB_era5_hyd_MWI.nc')
+        os.path.join(os.environ['PATH_BRT'],
+                     'TB_era5_hyd_MWI.nc'))
 
     #%% calculate mean and std of profiles
     # radiosondes
@@ -147,12 +149,13 @@ if __name__ == '__main__':
     axes[1, 0].set_xlabel('Frequency [GHz]')
     axes[1, 0].set_ylabel('TB [K]')
     
-    plt.savefig(path_plot + 'brightness_temperature/tb_spectra.png', 
-                dpi=300)
+    plt.savefig(os.path.join(os.environ['PATH_PLT'], 
+                             'brightness_temperature/tb_spectra.png'), 
+                dpi=300, bbox_inches='tight')
     
     plt.close('all')
 
-    #%%PROOF plot mean and std of TB from radiosondes
+    #%% plot mean and std of TB from radiosondes
     fig, ax = plt.subplots(1, 1, figsize=(6, 5), constrained_layout=True)
     
     # radiosondes
@@ -193,9 +196,11 @@ if __name__ == '__main__':
     ax.set_xlabel('Frequency [GHz]')
     ax.set_ylabel('TB [K]')
         
-    plt.savefig(path_plot + 'brightness_temperature/radiosondes_tb_spectra.png', 
-                dpi=300)
-
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'], 
+        'brightness_temperature/radiosondes_tb_spectra.png'), 
+                dpi=300, bbox_inches='tight')
+    
     #%% spectra as function of IWV to see why we have this strong dependence
     # of delta tb at low IWV
     # clearly the effect at low IWV can be seen, variability at center of
@@ -264,7 +269,9 @@ if __name__ == '__main__':
                               )
         cb = fig.colorbar(im2, ax=axes[2, i], label=label3)
     
-    plt.savefig(path_plot + 'brightness_temperature/era5_tb_mwi.png', 
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'], 
+        'brightness_temperature/era5_tb_mwi.png'), 
                 dpi=300, bbox_inches='tight')
     
     plt.close('all')

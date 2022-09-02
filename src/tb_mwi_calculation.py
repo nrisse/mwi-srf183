@@ -27,14 +27,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 from datetime import datetime
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/'+
-                'scripts')
-from importer import Sensitivity
+from io import Sensitivity
 from mwi_info import mwi
 from radiosonde import wyo
-from path_setter import path_data
+from dotenv import load_dotenv
 
+load_dotenv()
 plt.ion()
 
 
@@ -46,7 +44,8 @@ if __name__ == '__main__':
     #file_tb = 'TB_era5'
     
     # read pamtra simulation
-    ds_pam = xr.open_dataset(path_data+'brightness_temperature/'+file_tb+'.nc')
+    ds_pam = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'], file_tb+'.nc'))
     ds_pam.coords['frequency'] = (ds_pam.frequency*1e3).astype('int')
     
     # new dataset to combine with srfs
@@ -116,9 +115,11 @@ if __name__ == '__main__':
             for k, ix in enumerate([left_ix, right_ix]):
                 
                 # linear slope
-                ds_srf_err.srf_err_offset_dB[ix, i, j, 0] = np.linspace(-magn, magn, 
+                ds_srf_err.srf_err_offset_dB[ix, i, j, 0] = np.linspace(-magn, 
+                                                                        magn, 
                                                                len(ix)) * y[k]
-                ds_srf_err.srf_err_offset_dB[ix, i, j, 1] = np.linspace(magn, -magn, 
+                ds_srf_err.srf_err_offset_dB[ix, i, j, 1] = np.linspace(magn, 
+                                                                        -magn, 
                                                                len(ix)) * y[k]
                 
                 # imbalance
@@ -206,7 +207,8 @@ if __name__ == '__main__':
         ds_com[dtb_mwi_var] = ds_com['tb_mwi_orig'] - ds_com[tb_mwi_var]
         
     #%% write result to file
-    ds_com.to_netcdf(path_data+'brightness_temperature/'+file_tb+'_MWI.nc')
+    ds_com.to_netcdf(os.path.join(
+        os.environ['PATH_BRT'], file_tb+'_MWI.nc'))
     
     #%%
     plt.close('all')

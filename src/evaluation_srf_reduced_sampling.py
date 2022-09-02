@@ -21,25 +21,30 @@ import xarray as xr
 import matplotlib.pyplot as plt
 from string import ascii_lowercase as abc
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from mwi_info import mwi
-from path_setter import path_data, path_plot
+from dotenv import load_dotenv
+
+load_dotenv()
+plt.ion()
 
 
 if __name__ == '__main__':
     
     # read nc files
-    ds_com = xr.open_dataset(path_data + 'brightness_temperature/'+
-                             'TB_radiosondes_2019_MWI.nc')    
+    ds_com = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'],
+        'TB_radiosondes_2019_MWI.nc'
+        ))
     ext = '_radiosondes'    
     
-    #ds_com = xr.open_dataset(path_data + 'brightness_temperature/'+
-    #                         'TB_era5_hyd_MWI.nc')  
+    #ds_com = xr.open_dataset(os.path.join(
+    #    os.environ['PATH_BRT'],
+    #    'TB_era5_hyd_MWI.nc')  
     #ext = '_era5_hyd'
     
-    #ds_com = xr.open_dataset(path_data + 'brightness_temperature/'+
-    #                         'TB_era5_MWI.nc')  
+    #ds_com = xr.open_dataset(os.path.join(
+    #    os.environ['PATH_BRT'],
+    #    'TB_era5_MWI.nc')  
     #ext = '_era5'
     
     #ds_com = ds_com.stack({'profile': ['grid_x', 'grid_y']})  
@@ -71,7 +76,7 @@ if __name__ == '__main__':
               'Barbados': 'peru',
               }
     
-    #%% PROOF influence of data reduction
+    #%% influence of data reduction
     # x-axis: reduction_level 
     # y-axis: mean absolute difference
     # subplots: one channel per column
@@ -121,8 +126,10 @@ if __name__ == '__main__':
     # annotate station names in legend below
     axes[0].legend(frameon=False, fontsize=8, loc='center')
 
-    plt.savefig(path_plot + 'evaluation/reduced_srf_sampling'+ext+'.png', 
-                dpi=300, bbox_inches='tight')   
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+         'evaluation/reduced_srf_sampling'+ext+'.png'), 
+        dpi=300, bbox_inches='tight')   
 
     plt.close('all')
     

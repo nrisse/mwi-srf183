@@ -4,7 +4,10 @@ import requests
 from io import StringIO
 import pandas as pd
 import os
-from path_setter import path_data
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 station_id = {'Ny-Alesund': '01004', 'Singapore': '48698', 'Essen': '10410',
               'Barbados': '78954'}
@@ -59,13 +62,16 @@ if __name__ == '__main__':
             
                 data = pd.read_fwf(StringIO(data_str), skiprows=5, header=None, names=colnames)
                 
-                folder = path_data+'atmosphere/'+year+'/'+month+'/'+day+'/'
-                file = 'ID_'+station_id[station]+'_'+date_file+'.txt'
+                file = os.path.join(
+                    os.environ['PATH_ATM'],
+                    year, month, day,
+                    'ID_'+station_id[station]+'_'+date_file+'.txt'
+                    )
                 
-                if not os.path.exists(folder):
-                    os.makedirs(folder)
+                if not os.path.exists(os.path.dirname(file)):
+                    os.makedirs(os.path.dirname(file))
                     
-                with open(folder+file, 'w') as f:
+                with open(file, 'w') as f:
                     f.write('# '+ header + '\n')
                     data.to_csv(f, index=False)
                     

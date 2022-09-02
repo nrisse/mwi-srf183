@@ -26,7 +26,6 @@ import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 
 load_dotenv()
-
 plt.ion()
 
 

@@ -4,13 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from mwi_info import mwi
-from path_setter import path_plot, path_data
 from radiosonde import wyo 
+from dotenv import load_dotenv
 
-
+load_dotenv()
 plt.ion()
 
 
@@ -18,15 +16,18 @@ if __name__ == '__main__':
     
     # read data
     ds_com_rsd = xr.open_dataset(
-        path_data+'brightness_temperature/TB_radiosondes_2019_MWI.nc')
+        os.path.join(os.environ['PATH_BRT'],
+                     'TB_radiosondes_2019_MWI.nc'))
     ds_com_rsd['tb'] = ds_com_rsd.tb.transpose('frequency', 'profile', 'angle')
     
     ds_com_era = xr.open_dataset(
-        path_data+'brightness_temperature/TB_era5_MWI.nc')
+        os.path.join(os.environ['PATH_BRT'],
+                     'B_era5_MWI.nc'))
     ds_com_era = ds_com_era.stack({'profile': ('grid_x', 'grid_y')})
     
     ds_com_erh = xr.open_dataset(
-        path_data+'brightness_temperature/TB_era5_hyd_MWI.nc')
+        os.path.join(os.environ['PATH_BRT'],
+                     'B_era5_hyd_MWI.nc'))
     ds_com_erh = ds_com_erh.stack({'profile': ('grid_x', 'grid_y')})
     
     #%% calculate cumulative TB mwi for top-hat and for orig srf
