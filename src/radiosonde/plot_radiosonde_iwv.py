@@ -8,9 +8,9 @@ import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from path_setter import path_plot, path_data
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 if __name__ == '__main__':

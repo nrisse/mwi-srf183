@@ -1,5 +1,5 @@
 """
-View ERA-5 scene and the selected region within
+View ERA-5 scene.
 """
 
 import xarray as xr
@@ -9,21 +9,20 @@ import cartopy.crs as ccrs
 import matplotlib.ticker as mticker
 from string import ascii_lowercase as abc
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from path_setter import path_data, path_plot
+from dotenv import load_dotenv
 
+load_dotenv()
 plt.ion()
 
 
 if __name__ == '__main__':
     
-    ds_era5_sl = xr.open_dataset(path_data+'atmosphere/era5-single-'+
-                                 'levels_20150331_1200.nc')
+    ds_era5_sl = xr.open_dataset(os.path.join(
+        os.environ['PATH_ATM'], 'era5-single-levels_20150331_1200.nc'))
     ds_era5_sl = ds_era5_sl.isel(time=0)
     
-    ds_com = xr.open_dataset(
-        path_data+'brightness_temperature/TB_era5_hyd_MWI.nc')
+    ds_com = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'], 'TB_era5_hyd_MWI.nc'))
     
     #%% information on dataset
     print(ds_era5_sl.latitude.min().item())
@@ -90,8 +89,10 @@ if __name__ == '__main__':
                  orientation='horizontal')
     fig.colorbar(im4, ax=ax2, orientation='horizontal')
     
-    plt.savefig(path_plot+'data/era5_surface_variables_large_scale.png', 
-                dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'data/era5_surface_variables_large_scale.png'),
+        dpi=300, bbox_inches='tight')
         
     #%% plot state of atmosphere 
     map_proj = ccrs.PlateCarree()
@@ -150,8 +151,9 @@ if __name__ == '__main__':
         fig.colorbar(im, ax=axes[i], label=label+'\n[kg m$^{-2}$]', 
                      orientation='horizontal', ticks=dct_ticks[hyd])
         
-    plt.savefig(path_plot+'data/era5_int_hyd.png', dpi=300, 
-                bbox_inches='tight')
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'data/era5_int_hyd.png'), dpi=300, bbox_inches='tight')
     
     plt.close('all')
     
@@ -196,8 +198,9 @@ if __name__ == '__main__':
         cmap='magma_r')
     fig.colorbar(im, ax=axes[3], shrink=0.5)
     
-    plt.savefig(path_plot+'data/era5_emissivity.png', dpi=300, 
-                bbox_inches='tight')
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        +'data/era5_emissivity.png'), dpi=300, bbox_inches='tight')
     
     plt.close('all')
     

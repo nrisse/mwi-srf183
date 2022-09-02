@@ -10,10 +10,11 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from scipy.interpolate import interp1d as interpolate
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from mwi_info import mwi
-from importer import Sensitivity
+from srf_reader import Sensitivity
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def correlation(a):

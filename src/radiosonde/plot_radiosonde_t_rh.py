@@ -8,10 +8,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from glob import glob
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from radiosonde import wyo
-from path_setter import path_plot, path_data
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Radiosonde:
@@ -46,7 +46,9 @@ class Radiosonde:
             print(station_id)
             
             # get all 2019 data
-            files = glob(path_data + f'atmosphere/2019/*/*/*{station_id}*.txt')
+            files = glob(os.path.join(
+                os.environ['PATH_ATM'],
+                f'atmosphere/2019/*/*/*{station_id}*.txt'))
             
             # get all values for the station ID
             values = np.array([])

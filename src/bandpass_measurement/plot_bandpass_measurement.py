@@ -10,7 +10,7 @@ from string import ascii_lowercase as abc
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
-from io import Sensitivity
+from srf_reader import Sensitivity
 from mwi_info import mwi
 from dotenv import load_dotenv
 

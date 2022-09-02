@@ -18,22 +18,23 @@ import numpy as np
 import matplotlib.ticker as mticker
 from string import ascii_lowercase as abc
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from path_setter import path_data, path_plot
 from mwi_info import mwi
+from dotenv import load_dotenv
 
+load_dotenv()
 plt.ion()
 
 
 if __name__ == '__main__':
     
-    ds_com_era = xr.open_dataset(
-        path_data+'brightness_temperature/TB_era5_MWI.nc')
+    ds_com_era = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'],
+        'TB_era5_MWI.nc'))
     ext = ''
     
-    ds_com_erh = xr.open_dataset(
-        path_data+'brightness_temperature/TB_era5_hyd_MWI.nc')
+    ds_com_erh = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'],
+        'TB_era5_hyd_MWI.nc'))
     ext = '_hyd'
 
     #%% statistics
@@ -111,7 +112,9 @@ if __name__ == '__main__':
     fig.colorbar(im, ax=axes, orientation='vertical', shrink=0.33,
                  label='$\Delta$TB [K]', ticks=np.arange(-0.8, 0.9, 0.4))
         
-    plt.savefig(path_plot+'evaluation/dtb_mwi_est_grid_era5'+ext+'.png', dpi=300,
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'evaluation/dtb_mwi_est_grid_era5'+ext+'.png'), dpi=300,
                 bbox_inches='tight')
     
     plt.close('all')
@@ -172,8 +175,9 @@ if __name__ == '__main__':
     fig.colorbar(im, ax=axes, orientation='vertical', shrink=0.33,
                  label='$\Delta$TB$_{\mathrm{all-sky}}$ - $\Delta$TB$_{\mathrm{clear-sky}}$ [K]', ticks=np.arange(-0.8, 0.9, 0.4))
         
-    plt.savefig(path_plot+'evaluation/'+
-                'dtb_mwi_est_grid_era5_cloud_minus_clear.png', dpi=300,
-                bbox_inches='tight')
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'evaluation/dtb_mwi_est_grid_era5_cloud_minus_clear.png', dpi=300,
+        bbox_inches='tight')
     
     plt.close('all')

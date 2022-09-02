@@ -9,17 +9,19 @@ import xarray as xr
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from path_setter import path_data, path_plot
+from dotenv import load_dotenv
 
+load_dotenv()
 plt.ion()
 
 
 if __name__ == '__main__':
     
     # read nc files
-    ds_com_rsd = xr.open_dataset(
+    ds_com_rsd = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'],
+        
+        )
         path_data+'brightness_temperature/TB_radiosondes_2019_MWI.nc')
 
     #%% data availability

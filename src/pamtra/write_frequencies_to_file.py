@@ -10,11 +10,11 @@ Frequencies from MWI-RX183_Matlab.xlsx are not considered
 
 import numpy as np
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from importer import Sensitivity
+from os import Sensitivity
 from mwi_info import mwi
-from path_setter import path_data
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 if __name__ == '__main__':
@@ -27,5 +27,6 @@ if __name__ == '__main__':
     freqs_pamtra = np.unique(np.sort(freqs_pamtra))  # sort and remove duplicates
     
     # write frequencies to file
-    np.savetxt(path_data + 'brightness_temperature/frequencies.txt', freqs_pamtra)
-    
+    np.savetxt(os.path.join(
+        os.environ['PATH_BRT'],
+        'frequencies.txt'), freqs_pamtra)

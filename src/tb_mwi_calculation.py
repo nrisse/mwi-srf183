@@ -27,7 +27,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 from datetime import datetime
-from io import Sensitivity
+from srf_reader import Sensitivity
 from mwi_info import mwi
 from radiosonde import wyo
 from dotenv import load_dotenv

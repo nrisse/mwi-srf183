@@ -16,12 +16,11 @@ import numpy as np
 from string import ascii_lowercase as abc
 import matplotlib.pyplot as plt
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from importer import Sensitivity
+from srf_reader import Sensitivity
 from mwi_info import mwi
-from path_setter import path_plot
+from dotenv import load_dotenv
 
+load_dotenv()
 plt.ion()
 
 

@@ -10,27 +10,29 @@ import matplotlib.patches as mpatches
 import xarray as xr
 from string import ascii_lowercase as abc
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 from mwi_info import mwi
 from radiosonde import wyo
-from path_setter import path_plot, path_data
+from dotenv import load_dotenv
 
+load_dotenv()
 plt.ion()
 
 
 if __name__ == '__main__':
     
     # read data
-    ds_com_rsd = xr.open_dataset(
-        path_data+'brightness_temperature/TB_radiosondes_2019_MWI.nc')
+    ds_com_rsd = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'],
+        'TB_radiosondes_2019_MWI.nc'))
     
-    ds_com_era = xr.open_dataset(
-        path_data+'brightness_temperature/TB_era5_MWI.nc')
+    ds_com_era = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'],
+        'TB_era5_MWI.nc'))
     ds_com_era = ds_com_era.stack({'profile': ('grid_x', 'grid_y')})
     
-    ds_com_erh = xr.open_dataset(
-        path_data+'brightness_temperature/TB_era5_hyd_MWI.nc')
+    ds_com_erh = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'],
+        'TB_era5_hyd_MWI.nc'))
     ds_com_erh = ds_com_erh.stack({'profile': ('grid_x', 'grid_y')})
 
     #%% print some statistics
@@ -179,8 +181,10 @@ if __name__ == '__main__':
     else:
         ext = ''
     
-    plt.savefig(path_plot+'evaluation/dtb_mwi_est_vs_'+style+
-                '_radiosondes'+ext+'.png', dpi=400, bbox_inches='tight')
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'evaluation/dtb_mwi_est_vs_'+style+'_radiosondes'+ext+'.png'), 
+        dpi=400, bbox_inches='tight')
     
     plt.close('all')
     
@@ -251,8 +255,10 @@ if __name__ == '__main__':
                                s=2, linewidths=0, vmin=-c_max, vmax=c_max)
             fig.colorbar(im, ax=axes[i, j], orientation='horizontal')
             
-    plt.savefig(path_plot+'evaluation/dtb_mwi_est_vs_tb_obs_vs_iwv'+
-                '_radiosondes.png', dpi=400, bbox_inches='tight')
+    plt.savefig(os.path.join(
+        os.environ['PATH_BRT'],
+        'evaluation/dtb_mwi_est_vs_tb_obs_vs_iwv_radiosondes.png'), 
+        dpi=400, bbox_inches='tight')
     
     plt.close('all')
     

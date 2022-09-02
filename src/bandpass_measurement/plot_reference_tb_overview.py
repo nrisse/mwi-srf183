@@ -4,23 +4,22 @@ Script to plot reference tb location for visualization in the presentations
 
 
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
-
-from path_setter import path_data, path_plot
 from mwi_info import mwi
+from dotenv import load_dotenv
 
+load_dotenv()
 plt.ion()
 
 
 if __name__ == '__main__':
     
     # read combined dataset with the different SRF
-    ds_com = xr.open_dataset(
-        path_data+'brightness_temperature/TB_radiosondes_2019_MWI.nc')
+    ds_com = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'],
+        'TB_radiosondes_2019_MWI.nc'))
     
     #%% plot srf and the estimate frequencies together
     channel = 18
@@ -68,7 +67,9 @@ if __name__ == '__main__':
     ax.set_xlabel('Frequency [GHz]')
     ax.set_ylabel('Sensitivity [%]')
         
-    plt.savefig(path_plot + 'bandpass_measurement/estimate_frequencies.svg',
-                bbox_inches='tight')
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'bandpass_measurement/estimate_frequencies.svg'),
+        bbox_inches='tight')
     
     plt.close('all')

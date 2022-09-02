@@ -160,6 +160,9 @@ if __name__ == '__main__':
     
     axes1[-1].legend(ncol=2, frameon=False, fontsize=8)
     
-    plt.savefig(path_plot+'evaluation/perturbation_effect'+ext+'.png', dpi=300)
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'evaluation/perturbation_effect'+ext+'.png'), dpi=300, 
+        bbox_inches='tight')
     
     plt.close('all')

@@ -1,18 +1,16 @@
+"""
+Compare defined frequency grid and frequency grid from measurement files
+"""
 
 
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import sys
-sys.path.append(f'{os.environ["PATH_PHD"]}/projects/mwi_bandpass_effects/scripts')
-from importer import Sensitivity
-from path_setter import path_data, path_plot
+from srf_reader import Sensitivity
 from mwi_info import mwi
+from dotenv import load_dotenv
 
-
-"""
-Compare defined frequency grid and frequency grid from measurement files
-"""
+load_dotenv()
 
 
 if __name__ == '__main__':
@@ -22,7 +20,8 @@ if __name__ == '__main__':
     sen = Sensitivity(filename=Sensitivity.files[1])
     
     # read pamtra frequencies
-    freqs_pamtra = np.loadtxt(path_data + 'brightness_temperature/frequencies.txt')
+    freqs_pamtra = np.loadtxt(os.path.join(
+        os.environ['PATH_BRT'], 'frequencies.txt'))
     
     # plot frequencies
     plt.figure(figsize=(6, 2))
@@ -41,5 +40,5 @@ if __name__ == '__main__':
     plt.axvline(x=183.312, color='lightgray')
     plt.legend()
     plt.grid()
+    plt.show()
     
-    plt.savefig(path_plot + 'bandpass_measurement/frequencies.png', dpi=400)
