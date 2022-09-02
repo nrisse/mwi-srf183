@@ -60,7 +60,6 @@ if __name__ == '__main__':
     
     #%% define top-hat functions
     bw = np.array([2000, 2000])
-    bw = np.array([1500, 2000])
     offset = np.array([3000, 7000])
     center = np.array([183310, 183310])
     
@@ -92,7 +91,7 @@ if __name__ == '__main__':
     file_tb = 'TB_radiosondes_2019'
     ds_pam = xr.open_dataset(path_data+'brightness_temperature/'+file_tb+'.nc')
     ds_pam.coords['frequency'] = (ds_pam.frequency*1e3).astype('int')
-    
+    1500
     #%% match srf with radiative transfer simulations
     # interpolate tb spectrally
     ds_com = ds_pam['tb'].interp({'frequency': ds.frequency})
@@ -114,11 +113,12 @@ if __name__ == '__main__':
         
     #%%
     # compare bias of the two channels with the saunders report
-    np.abs(ds_com.dtb_mwi_est).mean('profile')
+    ds_com.dtb_mwi_est.mean('profile')
     
     #%% compare with MWI channels
     ds_com_rsd = xr.open_dataset(
         path_data+'brightness_temperature/TB_radiosondes_2019_MWI.nc')
     
-    np.abs(ds_com_rsd.dtb_mwi_est).sel(est_type='top-hat').mean('profile')
+    ds_com_rsd.dtb_mwi_est.sel(
+        est_type='top-hat', channel=[17, 14]).mean('profile')
     
