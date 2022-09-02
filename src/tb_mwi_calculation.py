@@ -24,7 +24,6 @@ Implemented SRF:
 import xarray as xr
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import os
 from datetime import datetime
 from srf_reader import Sensitivity
@@ -33,7 +32,6 @@ from radiosonde import wyo
 from dotenv import load_dotenv
 
 load_dotenv()
-plt.ion()
 
 
 if __name__ == '__main__':
@@ -209,6 +207,3 @@ if __name__ == '__main__':
     #%% write result to file
     ds_com.to_netcdf(os.path.join(
         os.environ['PATH_BRT'], file_tb+'_MWI.nc'))
-    
-    #%%
-    plt.close('all')
