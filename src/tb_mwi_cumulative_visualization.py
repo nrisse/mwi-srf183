@@ -127,8 +127,10 @@ if __name__ == '__main__':
                              ha='center', va='center')
             
             dtb_txt = '%+1.2f'%dtb
-            plt.savefig(path_plot+'evaluation/dtb_details/'+
-                        f'{channel}_{dtb_txt}_{profile}.png', dpi=100, 
+            plt.savefig(os.path.join(
+                os.environ['PATH_PLT'],
+                'evaluation/dtb_details/'+
+                f'{channel}_{dtb_txt}_{profile}.png'), dpi=100, 
                         bbox_inches='tight')
             
             plt.close('all')

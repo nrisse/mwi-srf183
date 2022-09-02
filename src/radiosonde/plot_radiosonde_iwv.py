@@ -16,8 +16,9 @@ load_dotenv()
 if __name__ == '__main__':
 
     # read data
-    ds_com = xr.open_dataset(
-        path_data+'brightness_temperature/TB_radiosondes_2019_MWI.nc')
+    ds_com = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'],
+        'TB_radiosondes_2019_MWI.nc'))
     
     #%% re-arrange data by making profile index to time/station index
     da_time = ds_com.time
@@ -78,9 +79,10 @@ if __name__ == '__main__':
     ax.set_xlabel('Month')
     ax.set_ylabel('IWV [kg m$^{-2}$]')
         
-    plt.savefig(path_plot + 'data/radiosondes_iwv_monthly.png',
-                dpi=300,
-                bbox_inches='tight')
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'data/radiosondes_iwv_monthly.png'),
+        dpi=300, bbox_inches='tight')
     
     plt.close('all')
     

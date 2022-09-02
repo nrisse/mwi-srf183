@@ -20,9 +20,7 @@ if __name__ == '__main__':
     # read nc files
     ds_com_rsd = xr.open_dataset(os.path.join(
         os.environ['PATH_BRT'],
-        
-        )
-        path_data+'brightness_temperature/TB_radiosondes_2019_MWI.nc')
+        'TB_radiosondes_2019_MWI.nc'))
 
     #%% data availability
     text = 'Data availability of station {} in 2019: {}'
@@ -66,5 +64,7 @@ if __name__ == '__main__':
     for i, name in enumerate(df.columns):
         ax.annotate(text=name, xy=(dates[0], y[i]), xycoords='data', ha='right', va='center')
 
-    plt.savefig(path_plot + 'data/radiosondes_data_availability.png', dpi=300)
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'data/radiosondes_data_availability.png'), dpi=300)
     

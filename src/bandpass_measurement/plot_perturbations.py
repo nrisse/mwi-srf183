@@ -12,8 +12,8 @@ load_dotenv()
 if __name__ == '__main__':
     
     # read dataset with different perturbed srf
-    ds_com = xr.open_dataset(path_data+'/brightness_temperature/'+
-                             'TB_radiosondes_2019_MWI.nc')
+    ds_com = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'], 'TB_radiosondes_2019_MWI.nc'))
     
     # remove frequencies, at which no original srf was measured
     # this makes the line plots nicer, becuase otherwise bandpass frequencies
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     ax.set_xlim([183.31-3-0.1, 183.31+3+0.1])
     
     # add vertical lines
-    ax.axvline(x=mwi.absorpt_line, color='k', linewidth=1, zorder=0)  # mark line center
+    ax.axvline(x=mwi.absorpt_line, color='k', linewidth=1, zorder=0)
     
     # add shade for each channel
     ax.axvspan(xmin=mwi.freq_bw[i, 0], xmax=mwi.freq_bw[i, 1], ymin=-10e3,
@@ -93,9 +93,10 @@ if __name__ == '__main__':
     leg = ax.legend(loc='center left', bbox_to_anchor=(1.01, 0.5), ncol=1, 
                     frameon=False)
     
-    plt.savefig(path_plot + 'bandpass_measurement/perturbation/'+
-                'perturbation_single_%1.1f.png'%mag, 
-                bbox_inches='tight', dpi=300)
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'bandpass_measurement/perturbation/perturbation_single_%1.1f.png'%mag), 
+        bbox_inches='tight', dpi=300)
     
     plt.close('all')
     
@@ -126,22 +127,19 @@ if __name__ == '__main__':
             axes[i].set_xlim([np.min(mwi.freq_bw)-0.1, np.max(mwi.freq_bw)+0.1])
             
             # annotate channel name
-            axes[i].annotate(text=mwi.freq_txt[i], xy=(1.01, 0.5), xycoords='axes fraction', backgroundcolor='None',
-                             annotation_clip=False, horizontalalignment='left', verticalalignment='center')
+            axes[i].annotate(text=mwi.freq_txt[i], xy=(1.01, 0.5), 
+                             xycoords='axes fraction', ha='left', va='center')
             
             # add vertical lines
-            axes[i].axvline(x=mwi.absorpt_line, color='k', linewidth=1, zorder=0)  # mark line center
-            
-            #for j in range(2):  # mark left/right channel frequency
-            #    axes[i].axvline(x=mwi.freq_center[i, j], color='gray', linestyle='--', linewidth=0.75, zorder=0)
-            
-            #for j in range(4):  # mark each bandwidth edge
-            #    axes[i].axvline(x=mwi.freq_bw[i, j], color='gray', linestyle=':', linewidth=0.75, zorder=0)
+            axes[i].axvline(x=mwi.absorpt_line, color='k', linewidth=1, 
+                            zorder=0)  # mark line center
             
             # add shade for each channel
-            axes[i].axvspan(xmin=mwi.freq_bw[i, 0], xmax=mwi.freq_bw[i, 1], ymin=-10e3, ymax=10e3, color='gray',
+            axes[i].axvspan(xmin=mwi.freq_bw[i, 0], xmax=mwi.freq_bw[i, 1], 
+                            ymin=-10e3, ymax=10e3, color='gray',
                             alpha=0.2, linewidth=0)
-            axes[i].axvspan(xmin=mwi.freq_bw[i, 2], xmax=mwi.freq_bw[i, 3], ymin=-10e3, ymax=10e3, color='gray',
+            axes[i].axvspan(xmin=mwi.freq_bw[i, 2], xmax=mwi.freq_bw[i, 3], 
+                            ymin=-10e3, ymax=10e3, color='gray',
                             alpha=0.2, linewidth=0)
             
         # set axis labels
@@ -149,7 +147,8 @@ if __name__ == '__main__':
         axes[-1].set_xlabel('Frequency [GHz]')
             
         # add legend below
-        leg = axes[0].legend(loc='lower center', bbox_to_anchor=(0.5, 1.1), ncol=3, frameon=False)
+        leg = axes[0].legend(loc='lower center', bbox_to_anchor=(0.5, 1.1), 
+                             ncol=3, frameon=False)
         leg.set_in_layout(False)
         # trigger a draw so that constrained_layout is executed once
         # before we turn it off when printing....
@@ -159,7 +158,10 @@ if __name__ == '__main__':
         # we don't want the layout to change at this point.
         fig.set_constrained_layout(False)
         
-        plt.savefig(path_plot + 'bandpass_measurement/perturbation/perturbation_%1.1f.png'%mag, bbox_inches='tight', dpi=300)
+        plt.savefig(os.path.join(
+            os.environ['PATH_PLT'],
+            'bandpass_measurement/perturbation/perturbation_%1.1f.png'%mag), 
+            bbox_inches='tight', dpi=300)
     
     plt.close('all')
     
@@ -223,7 +225,11 @@ if __name__ == '__main__':
     # add legend below
     leg = ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5), ncol=1, frameon=False)
     
-    plt.savefig(path_plot + 'bandpass_measurement/perturbation/perturbed_sensitivity_linear_single_%1.1f_kind%s.png'%(mag, pert_kind), bbox_inches='tight', dpi=300)
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'bandpass_measurement/perturbation/perturbed_sensitivity_linear_'+
+        'single_%1.1f_kind%s.png'%(mag, pert_kind)), bbox_inches='tight',
+        dpi=300)
     
     plt.close('all')
     
@@ -290,7 +296,10 @@ if __name__ == '__main__':
         # we don't want the layout to change at this point.
         fig.set_constrained_layout(False)
         
-        plt.savefig(path_plot + 'bandpass_measurement/perturbation/perturbed_sensitivity_linear_%1.1f.png'%mag, bbox_inches='tight', dpi=300)
+        plt.savefig(os.path.join(
+            os.environ['PATH_PLT'],
+            'bandpass_measurement/perturbation/perturbed_sensitivity_'+
+            'linear_%1.1f.png'%mag), bbox_inches='tight', dpi=300)
     
     plt.close('all')
     
@@ -358,8 +367,10 @@ if __name__ == '__main__':
         # we don't want the layout to change at this point.
         fig.set_constrained_layout(False)
         
-        plt.savefig(path_plot + 'bandpass_measurement/perturbation/perturbed_sensitivity_db_%1.1f.svg'%mag, 
-                    bbox_inches='tight', dpi=300)
+        plt.savefig(os.path.join(
+            os.environ['PATH_PLT'],
+            'bandpass_measurement/perturbation/perturbed_sensitivity'+
+            '_db_%1.1f.svg'%mag), bbox_inches='tight', dpi=300)
         
     plt.close('all')
 

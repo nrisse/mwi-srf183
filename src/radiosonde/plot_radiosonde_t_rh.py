@@ -154,5 +154,7 @@ if __name__ == '__main__':
     
     plt.subplots_adjust(right=0.95, bottom=0.25, top=0.9, left=0.15)
     
-    plt.savefig(path_plot + 'data/radiosondes_t_rh.png', 
-                dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'data/radiosondes_t_rh.png'), 
+        dpi=300, bbox_inches='tight')

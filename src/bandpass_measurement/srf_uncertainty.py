@@ -138,8 +138,10 @@ if __name__ == '__main__':
     axes[0].set_xlabel('Frequency [GHz]')
     axes[0].set_ylabel('Sensitivity difference [dB]')
     
-    plt.savefig(path_plot+'bandpass_measurement/bandpass_measurement_diff.png',
-                dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'],
+        'bandpass_measurement/bandpass_measurement_diff.png'),
+        dpi=300, bbox_inches='tight')
     
     #%%
     plt.close('all')
