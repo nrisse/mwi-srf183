@@ -71,7 +71,7 @@ if __name__ == '__main__':
     
     # choose x axis style
     styles = ['tb_obs', 'iwv']
-    style = styles[1]
+    style = styles[0]
     
     # choose if with or without era-5
     era5 = True  # this is just as a test to see if clear sky matches
@@ -164,7 +164,8 @@ if __name__ == '__main__':
     patches = []
     stations = wyo.station_id.keys()
     for station in stations:
-        patches.append(mpatches.Patch(color=colors[station], label=station))
+        patches.append(mpatches.Patch(color=colors.colors_rs[station], 
+                                      label=station))
     axes[0, 0].legend(handles=patches[:2], frameon=False, fontsize=7)
     axes[0, 1].legend(handles=patches[2:], frameon=False, fontsize=7)
     

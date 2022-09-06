@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 import os
-from helpers import mwi, wyo 
+from helpers import mwi, wyo, colors
 from dotenv import load_dotenv
 
 load_dotenv()

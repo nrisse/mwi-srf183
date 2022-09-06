@@ -6,7 +6,6 @@ and lower DSB measurements. Both sides are nearly weighted the same, but one
 side can also be weighted more than the other side.
 
 This script calculates MWI-RX183_Matlab.xlsx from the DSB measurements in the
-file MWI-RX183_DSB_Matlab.xlsx by averaging the lower and upper frequencies.
 Then, both measurements are compared by interpolation, because they measure not 
 at the same frequencies.
 
@@ -17,9 +16,7 @@ Outcome:
     Correlation is higher for differences in dB (0.97, 0.92) than in linear
     values (0.85, 0.83) for channels 14/15 and 15/16 when using only the band
     pass region. When using all frequencies, the correlation is lower with 
-    values below 0.5
-    
-    How large is the offset?
+    values below 0.5.
 """
 
 
@@ -69,9 +66,9 @@ if __name__ == '__main__':
     # convert to dB and shift to maximum of 0 dB
     for name in ['sen2_from_sen1', 'sen2_interp']:
         ds[name+'_dB'] = 10*np.log10(ds[name])
-        ds[name+'_dB'] -= np.max(ds[name+'_dB'])
+        ds[name+'_dB'] -= ds[name+'_dB'].max('frequency')
     
-    assert ds[['sen2_from_sen1_dB', 'sen2_interp_dB']].max() == 0
+    assert ds[['sen2_from_sen1_dB', 'sen2_interp_dB']].max('frequency') == 0
     
     # calculate difference
     ds['sen2_diff'] = ds['sen2_interp'] - ds['sen2_from_sen1']
@@ -215,9 +212,17 @@ if __name__ == '__main__':
     
     #%% visualization: differences between dB for bandpass region with labels
     fig, axes = plt.subplots(1, 5, figsize=(6, 2.3), sharey=True, 
-                             constrained_layout=True)
+                             constrained_layout=True, gridspec_kw=dict(
+                                 width_ratios=mwi.bandwidths[::-1]))
     
-    for j, (i, ax) in enumerate(zip(ds.channel.values, axes)):
+    f = np.array([
+        ds.frequency.where(
+            (ds.frequency > mwi.freq_bw_MHz[i, 2]) & \
+            (ds.frequency < mwi.freq_bw_MHz[i, 3]))
+            for i in range(5)])
+    ix_f = np.isnan(f).sum(axis=0) <= 3
+    
+    for j, (i, ax) in enumerate(zip(ds.channel.values, axes[::-1])):
                         
         ax.spines.top.set_visible(False)
         ax.spines.right.set_visible(False)
@@ -225,19 +230,26 @@ if __name__ == '__main__':
         ax.axhline(y=0, color='k', linewidth=0.8)
         
         # frequencies in bandpass region
-        f = dict(frequency=slice(
-            (mwi.freq_center[j, 1]-mwi.bandwidths[j]/2)*1e3, 
-            (mwi.freq_center[j, 1]+mwi.bandwidths[j]/2)*1e3))
+        f = dict(frequency=slice(mwi.freq_bw_MHz[j, 2], mwi.freq_bw_MHz[j, 3]))
         
-        #ax.axhline(
-        #    y=ds.sen2_diff_dB.sel(channel=i, **f).mean('frequency'),
-        #    color='coral', linestyle=':'
-        #    )
-            
+        # plot all
         ax.plot(
             ds.frequency.sel(**f)*1e-3,
             ds.sen2_diff_dB.sel(channel=i, **f),
-            color='gray', linewidth=0.8,
+            color='darkgray',
+            )
+        
+        # plot overlap in different color
+        ax.plot(
+            ds.frequency.sel(**f)*1e-3,
+            ds.sen2_diff_dB.sel(channel=i).where(ix_f).sel(**f),
+            color='dimgray',
+            )
+        
+        # offset        
+        ax.axhline(
+            y=ds.sen2_diff_dB.sel(channel=i, **f).mean('frequency'),
+            color='#f3722c', label='mean bias',
             )
         
         # fit line
@@ -246,27 +258,30 @@ if __name__ == '__main__':
         ax.plot(
             ds.frequency.sel(**f)*1e-3,
             ds.frequency.sel(**f)*a + b,
-            color='coral'
+            color='#577590', label='linear fit',
             )
         
         ax.set_xticks(np.arange(0, 300))
         ax.set_xlim(list(f.values())[0].start*1e-3, 
                     list(f.values())[0].stop*1e-3)
         
-        ax.set_ylim(-.5, .5)
+        ax.set_yticks(np.arange(-10, 10, 0.2))
+        ax.set_ylim(-.4, .65)
         
-        ax.annotate(f'({abc[j]})', xy=(0.01, .99), 
+        ax.annotate(f'({abc[4-j]})', xy=(0.01, .99), 
                     xycoords='axes fraction', ha='left', va='top')
         
         ax.annotate(mwi.freq_txt[j].split('\n')[0], xy=(0.5, 1), 
                     xycoords='axes fraction', ha='center', va='bottom')
+    
+    axes[-1].legend(frameon=False, fontsize=7)
     
     axes[0].set_xlabel('Frequency [GHz]')
     axes[0].set_ylabel('Sensitivity difference [dB]')
     
     plt.savefig(os.path.join(
         os.environ['PATH_PLT'],
-        'bandpass_measurement/bandpass_measurement_diff.png'),
+        'srf_diff.png'),
         dpi=300, bbox_inches='tight')
     
     #%% visualization: sensitivity differences normalized

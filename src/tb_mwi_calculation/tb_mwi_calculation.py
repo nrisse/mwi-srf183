@@ -1,23 +1,15 @@
 """
-Comparisong MWI observation calculated with different SRF.
+Comparison of MWI observation calculated with different SRF.
 
 The MWI estimations are also treated as SRF, but with values only at the
-few specified frequencies. This makes the code much shorter and easier
-to understand.
-
-Advantage: TB values are retained
-
-Future interesting thing:
-    - create dimension i_srf which counts the many different versions of MWI
-      SRF from real measured, reduced, perturbed, estimate at few frequencies,
-      etc. making calculation and evaluation very easy and obvious.
+few specified frequencies. This makes the code much shorter.
 
 Implemented SRF:
     - original
     - top-hat
-    - freq center
-    - freq bw
-    - freq bw center
+    - center
+    - cutoff
+    - cutoff+center
 """
 
 
@@ -61,9 +53,6 @@ if __name__ == '__main__':
                                        for p in ds_com.profile.values]))
     
     #%% create different SRF's used to calculate MWI observation/estimates
-    # make another script which creates different SRF and writes them all to 
-    # a netcdf file!
-    # dimension: (frequency, channel, i_srf)
     # original measured SRF
     srf = Sensitivity(filename='MWI-RX183_DSB_Matlab.xlsx')
     ds_com['srf_orig'] = srf.data.lino
@@ -111,12 +100,10 @@ if __name__ == '__main__':
             for k, ix in enumerate([left_ix, right_ix]):
                 
                 # linear slope
-                ds_srf_err.srf_err_offset_dB[ix, i, j, 0] = np.linspace(-magn, 
-                                                                        magn, 
-                                                               len(ix)) * y[k]
-                ds_srf_err.srf_err_offset_dB[ix, i, j, 1] = np.linspace(magn, 
-                                                                        -magn, 
-                                                               len(ix)) * y[k]
+                ds_srf_err.srf_err_offset_dB[ix, i, j, 0] = \
+                    np.linspace(-magn, magn, len(ix)) * y[k]
+                ds_srf_err.srf_err_offset_dB[ix, i, j, 1] = \
+                    np.linspace(magn, -magn, len(ix)) * y[k]
                 
                 # imbalance
                 if k == 0: # left
@@ -125,10 +112,10 @@ if __name__ == '__main__':
                     ds_srf_err.srf_err_offset_dB[ix, i, j, 3] = magn
     
                 # define new ripples using sine curve
-                ds_srf_err.srf_err_offset_dB[ix, i, j, 4] = -magn*np.sin(
-                    np.linspace(0, 2*np.pi, len(ix))) * y[k]
-                ds_srf_err.srf_err_offset_dB[ix, i, j, 5] = magn*np.sin(
-                    np.linspace(0, 2*np.pi, len(ix))) * y[k]
+                ds_srf_err.srf_err_offset_dB[ix, i, j, 4] = \
+                    -magn*np.sin(np.linspace(0, 2*np.pi, len(ix))) * y[k]
+                ds_srf_err.srf_err_offset_dB[ix, i, j, 5] = \
+                    magn*np.sin(np.linspace(0, 2*np.pi, len(ix))) * y[k]
     
     # apply perturbations on raw srf data
     ds_srf_err['srf_err_dB'] = srf.data['raw'] + ds_srf_err['srf_err_offset_dB']
@@ -184,24 +171,24 @@ if __name__ == '__main__':
                          'top-hat'
                          ], name='est_type'))
     
-    #%% normalize all srf
-    for srf_name in [ 'srf_orig', 'srf_red', 'srf_err', 'srf_est']:
-        ds_com[srf_name] = ds_com[srf_name]/ds_com[srf_name].sum('frequency')
-    
-    #%% calculate mwi tb
+    #%% calculations
+    # get relevant variable names
     srf_vars = [x for x in list(ds_com) if ('srf' in x) and ('dB' not in x)]
-    for srf_var in srf_vars:
-        tb_mwi_var = srf_var.replace('srf', 'tb_mwi')
-        ds_com[tb_mwi_var] = (ds_com[srf_var] * 
-                              ds_com['tb'].isel(angle=9)).sum('frequency')
+    tb_mwi_vars = [s.replace('srf', 'tb_mwi') for s in srf_vars]
+    tb_mwi_vars_no_orig = [s for s in tb_mwi_vars if s != 'tb_mwi_orig']
+    dtb_mwi_vars_no_orig = ['d'+s for s in tb_mwi_vars_no_orig]
     
-    #%% calculate difference between original srf and other srfs
-    tb_mwi_vars = [x for x in list(ds_com) 
-                   if 'tb_mwi' in x and 'orig' not in x]
-    for tb_mwi_var in tb_mwi_vars:
-        dtb_mwi_var = tb_mwi_var.replace('tb_mwi', 'dtb_mwi')
-        ds_com[dtb_mwi_var] = ds_com['tb_mwi_orig'] - ds_com[tb_mwi_var]
-        
+    # normalize all srf
+    ds_com[srf_vars] = ds_com[srf_vars]/ds_com[srf_vars].sum('frequency')
+    
+    # calculate mwi tb
+    ds_com[tb_mwi_vars] = (ds_com[srf_vars] * \
+                           ds_com['tb'].isel(angle=9)).sum('frequency')
+    
+    # calculate difference between original srf and other srfs
+    ds_com[dtb_mwi_vars_no_orig] = ds_com['tb_mwi_orig'] - \
+                                   ds_com[tb_mwi_vars_no_orig]
+    
     #%% write result to file
     ds_com.to_netcdf(os.path.join(
         os.environ['PATH_BRT'], file_tb+'_MWI.nc'))

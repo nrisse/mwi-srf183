@@ -1,9 +1,6 @@
 """
 Plot brightness temperature spectrum of radiosonde profiles and ERA-5
-simulation
-    - all profiles in thin line
-    - mean profiles as thick line
-    - separate subplots for radiosonde locations and ERA-5
+simulation.
 """
 
 
@@ -163,7 +160,8 @@ if __name__ == '__main__':
                            ds_com_rsd_std.sel(station=station), 
                         y2=ds_com_rsd_mean.sel(station=station) +
                            ds_com_rsd_std.sel(station=station), 
-                        color=colors.colors_rs[station], alpha=0.3, zorder=1, lw=0)
+                        color=colors.colors_rs[station], alpha=0.3, zorder=1, 
+                        lw=0)
     
     # add MWI channels
     for i, channel in enumerate(mwi.channels_str):
@@ -194,30 +192,6 @@ if __name__ == '__main__':
         os.environ['PATH_PLT'], 
         'brightness_temperature/radiosondes_tb_spectra.png'), 
                 dpi=300, bbox_inches='tight')
-    
-    #%% spectra as function of IWV to see why we have this strong dependence
-    # of delta tb at low IWV
-    # clearly the effect at low IWV can be seen, variability at center of
-    # absorption line can not be explained by IWV
-    # in principle, a correction can only be applied if spectral variation
-    # of TB is known - IWV good proxi at outer bands and low IWV, at inner
-    # bands, IWV is not enough - temperature profile etc needed as pamtra
-    # uses - train ML algorithm to make spectral emissivity variation
-    # from a-priori profiles of atmosphere - no perfect solution available,
-    # especially for clouds it becomes impossible in my opinion
-    bins = np.arange(0, 60, 1)
-    labels = (bins[1:]+bins[:-1])/2
-    ds_tb_iwv = ds_com_rsd.groupby_bins(group='iwv', labels=labels,
-                                        bins=bins).mean('profile')
-    
-    fig, ax = plt.subplots(1, 1, figsize=(6, 4), constrained_layout=True)
-    
-    ds_tb_iwv_flat = ds_tb_iwv.tb.stack(flat=('iwv_bins', 'frequency'))
-    ax.scatter(ds_tb_iwv_flat.frequency*1e-3, 
-               ds_tb_iwv_flat.isel(angle=9), 
-               c=ds_tb_iwv_flat.iwv_bins, 
-               cmap='magma',
-               alpha=0.5)
     
     #%% plot tb from ERA-5 field as would be observed by MWI
     fig, axes = plt.subplots(3, 5, figsize=(6, 4), sharex=True, sharey=True,
