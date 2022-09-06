@@ -1,3 +1,6 @@
+"""
+Script to automatically download radiosondes from University of Wyoming website
+"""
 
 
 import requests
@@ -9,28 +12,29 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-station_id = {'Ny-Alesund': '01004', 'Singapore': '48698', 'Essen': '10410',
+station_id = {'Ny-Alesund': '01004', 
+              'Singapore': '48698', 
+              'Essen': '10410',
               'Barbados': '78954'}
 
-id_station = {'01004': 'Ny-Alesund', '48698': 'Singapore', '10410': 'Essen',
-              '78954': 'Barbados'}
+id_station = {v: k for k, v in station_id.items()}
 
 if __name__ == '__main__':
     
     # set stations 
-    name = {'Ny-Alesund': 'ny_alesund', 'Singapore': 'singapore', 'Essen': 'essen',
+    name = {'Ny-Alesund': 'ny_alesund', 
+            'Singapore': 'singapore', 
+            'Essen': 'essen',
             'Barbados': 'barbados'}
     
     # set times
-    #dates_feb = pd.date_range(start='2020/02/01 12:00', end='2020/02/28 12:00', freq='24H')
-    #dates_aug = pd.date_range(start='2020/08/01 12:00', end='2020/08/31 12:00', freq='24H')
-    
-    dates_2019 = pd.date_range(start='2019/01/01 12:00', end='2019/12/31 12:00', freq='24H')
-    
-    dates = dates_2019  # dates_feb.append(dates_aug)
-    
-    colnames = ['p [hPa]', 'z [m]', 'T [C]', 'T_dew [C]', 'RH [%]', 'r [g/kg]', 'wdir [deg]',
-                'SKNT [knot]', 'THTA [K]', 'THTE [K]', 'THTV [K]']
+    dates = pd.date_range(start='2019/01/01 12:00', 
+                          end='2019/12/31 12:00', 
+                          freq='24H')
+        
+    colnames = ['p [hPa]', 'z [m]', 'T [C]', 'T_dew [C]', 'RH [%]', 'r [g/kg]', 
+                'wdir [deg]',  'SKNT [knot]', 'THTA [K]', 'THTE [K]', 
+                'THTV [K]']
     
     stations = station_id.keys()
     
@@ -51,7 +55,9 @@ if __name__ == '__main__':
             
             # get data
             base = 'http://weather.uwyo.edu/cgi-bin/sounding?'
-            link = base+'region=np&TYPE=TEXT%3ALIST&YEAR='+year+'&MONTH='+month+'&FROM='+day+hour+'&TO='+day+hour+'&STNM='+station_id[station]
+            link = base+'region=np&TYPE=TEXT%3ALIST&YEAR='+year+'&MONTH='+\
+                month+'&FROM='+day+hour+'&TO='+day+hour+'&STNM='+\
+                    station_id[station]
             html = requests.get(link).text
             
             try:
@@ -60,7 +66,8 @@ if __name__ == '__main__':
                 
                 data_str = html.split('<PRE>')[1].split('</PRE>')[0]
             
-                data = pd.read_fwf(StringIO(data_str), skiprows=5, header=None, names=colnames)
+                data = pd.read_fwf(StringIO(data_str), skiprows=5, header=None, 
+                                   names=colnames)
                 
                 file = os.path.join(
                     os.environ['PATH_ATM'],

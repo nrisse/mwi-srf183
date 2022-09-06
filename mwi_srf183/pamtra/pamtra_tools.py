@@ -1,18 +1,5 @@
 """
-Collection of functions usefult when working with PAMTRA
-
-TODO: add atmospheric layers as well in their grid as they are used in pamtra
-and as they are availabel. not sure what temp and temp_lev differences are!
-
-add_obs_height_to_layer --> what happens here exactly?
-
-hydro_n
-hydro_q
-hydro_reff
-
-
-add names of hydrometeors if possible - they must be in descriptor file or?
-maybe also add content of descriptor file to keep track?
+Collection of functions usefult when working with PAMTRA.
 """
 
 
@@ -28,15 +15,6 @@ def pam_to_xarray(pam, split_angle=True):
     meta information. So far, this function is only created for passive
     simulations. Allows for fast analysis of the pamtra simulation
     and quick examples without having to remember index positions
-    
-    Based on the writeResultsToNetCDF of pyPamtra core.py script. Some 
-    variables were renamed and obs_height is added (was outlevels before)
-    to make the new naming consistent with the one in the different pam
-    dictionaries.
-    
-    The function could be added to the core.py script, one it is extended
-    by active variables and is getting more flexible on what is written to
-    xarray, which could be solved by a yaml configuration file.
     
     Input
     pam: pyPamtra object
@@ -54,7 +32,8 @@ def pam_to_xarray(pam, split_angle=True):
     
     Returns
     -------
-    ds_pam: xarray.Dataset containing a selection of pamtra variables
+    ds_pam: xarray.Dataset 
+        dataset containing a selection of pamtra variables
     """
     
     ds_pam = xr.Dataset()
@@ -67,7 +46,6 @@ def pam_to_xarray(pam, split_angle=True):
     ds_pam.coords['outlevel'] = np.arange(0, pam.p['noutlevels'], dtype='int')
     ds_pam.coords['polarization'] = np.array(['V', 'H'])
     ds_pam.coords['hydro_class'] = np.arange(pam.p['hydro_wp'].shape[2])
-    #ds_pam.coords['lev'] = np.arange(pam.p['max_nlyrs']+1)
     
     # coordinate attributes
     ds_pam['grid_x'].attrs = dict(long_name='pamtra grid x-axis')
@@ -81,7 +59,6 @@ def pam_to_xarray(pam, split_angle=True):
     # variables
     dim_2d = ('grid_x', 'grid_y')
     dim_3d = ('grid_x', 'grid_y', 'outlevel')
-    #dim_3d_lev = ('grid_x', 'grid_y', 'lev')
     dim_3d_hydro = ('grid_x', 'grid_y', 'hydro_class')
     dim_5d = ('grid_x', 'grid_y', 'polarization', 'frequency', 'angle')
     dim_6d = ('grid_x', 'grid_y', 'outlevel', 'angle', 'frequency', 
@@ -141,19 +118,6 @@ def pam_to_xarray(pam, split_angle=True):
     ds_pam['wind10v'] = (dim_2d, pam.p['wind10v'])
     ds_pam['wind10v'].attrs = dict(long_name='v-wind at 10 m height', 
                                    units='m s^-1')
-    
-    # atmospheric profile
-    #ds_pam['hgt_lev'] = (dim_3d_lev, pam.p['hgt_lev'])
-    #ds_pam['hgt_lev'].attrs = dict(long_name='height', units='m')
-    
-    #ds_pam['press_lev'] = (dim_3d_lev, pam.p['press_lev'])
-    #ds_pam['press_lev'].attrs = dict(long_name='pressure', units='Pa')
-    
-    #ds_pam['temp_lev'] = (dim_3d_lev, pam.p['temp_lev'])
-    #ds_pam['temp_lev'].attrs = dict(long_name='temperature', units='K')
-    
-    #ds_pam['relhum_lev'] = (dim_3d_lev, pam.p['relhum_lev'])
-    #ds_pam['relhum_lev'].attrs = dict(long_name='relative humidity', units='%')
     
     # integrated profile variables
     ds_pam['iwv'] = (dim_2d, pam.p['iwv'])
