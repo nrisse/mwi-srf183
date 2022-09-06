@@ -8,6 +8,7 @@ import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
 import os
+from helpers import colors
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -43,13 +44,6 @@ if __name__ == '__main__':
     ds_iwv_mean = ds_com.iwv.groupby(ds_com.time.dt.month).mean('time')
     ds_iwv_std = ds_com.iwv.groupby(ds_com.time.dt.month).std('time')
     
-    #%% colors for plot
-    colors = {'Ny-Alesund': 'cornflowerblue',
-              'Essen': 'seagreen',
-              'Singapore': 'palevioletred',
-              'Barbados': 'peru',
-              }
-    
     #%% integrated water vapor throughout the year for all stations
     fig, ax = plt.subplots(1, 1, figsize=(5, 4), constrained_layout=True)
         
@@ -57,7 +51,7 @@ if __name__ == '__main__':
 
         ax.plot(ds_iwv_mean.month, 
                 ds_iwv_mean.sel(station=station), 
-                color=colors[station], 
+                color=colors.colors_rs[station], 
                 linewidth=1.5, label=station)
         
         ax.fill_between(x=ds_iwv_mean.month, 
@@ -65,7 +59,7 @@ if __name__ == '__main__':
                             ds_iwv_std.sel(station=station), 
                         y2=ds_iwv_mean.sel(station=station) + \
                             ds_iwv_std.sel(station=station), 
-                        color=colors[station], 
+                        color=colors.colors_rs[station], 
                         alpha=0.2, linewidth=0)
         
     ax.legend(bbox_to_anchor=(0.5, -0.18), ncol=4, loc='upper center', 

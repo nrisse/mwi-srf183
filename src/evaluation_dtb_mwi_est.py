@@ -10,8 +10,7 @@ import matplotlib.patches as mpatches
 import xarray as xr
 from string import ascii_lowercase as abc
 import os
-from mwi_info import mwi
-from radiosonde import wyo
+from helpers import mwi, wyo, colors
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -34,7 +33,9 @@ if __name__ == '__main__':
         os.environ['PATH_BRT'],
         'TB_era5_hyd_MWI.nc'))
     ds_com_erh = ds_com_erh.stack({'profile': ('grid_x', 'grid_y')})
-
+    
+    c_list = [colors.colors_rs[p] for p in ds_com_rsd.station.values]
+    
     #%% print some statistics
     for channel in ds_com_rsd.channel:
         for est_type in ds_com_rsd.est_type:
@@ -62,16 +63,7 @@ if __name__ == '__main__':
     
     print(ds_com_rsd.dtb_mwi_est.max(['profile', 'channel', 'est_type']).item())
     print(ds_com_era.dtb_mwi_est.max(['profile', 'channel', 'est_type']).item())
-    print(ds_com_erh.dtb_mwi_est.max(['profile', 'channel', 'est_type']).item())
-    
-    #%% colors for plot
-    colors = {'Ny-Alesund': 'cornflowerblue',
-              'Essen': 'seagreen',
-              'Singapore': 'palevioletred',
-              'Barbados': 'peru',
-              }
-    
-    c_list = [colors[p] for p in ds_com_rsd.station.values]
+    print(ds_com_erh.dtb_mwi_est.max(['profile', 'channel', 'est_type']).item())    
     
     #%% scatter plot and histogram
     # x: TB obs or IWV

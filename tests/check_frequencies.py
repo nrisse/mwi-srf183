@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(
     os.path.dirname(__file__), 
-    '../mwi_srf183')))
+    '../src')))
 from helpers import Sensitivity, mwi
 
 load_dotenv()
@@ -27,7 +27,7 @@ if __name__ == '__main__':
         os.environ['PATH_BRT'], 'frequencies.txt'))
     
     # plot frequencies
-    fig, ax = plt.subplots(1, 1, figsize=(6, 2), constrained_layout=True)
+    fig, ax = plt.subplots(1, 1, figsize=(10, 4), constrained_layout=True)
     
     ax.scatter(freqs_pamtra, 
                np.zeros_like(freqs_pamtra),

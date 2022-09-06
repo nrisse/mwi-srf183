@@ -21,7 +21,7 @@ import xarray as xr
 import matplotlib.pyplot as plt
 from string import ascii_lowercase as abc
 import os
-from mwi_info import mwi
+from helpers import mwi, colors
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -68,13 +68,6 @@ if __name__ == '__main__':
     
     else:
         ds_com_red_mae = np.abs(ds_com.dtb_mwi_red).mean('profile')
-
-    #%% colors
-    colors = {'Ny-Alesund': 'cornflowerblue',
-              'Essen': 'seagreen',
-              'Singapore': 'palevioletred',
-              'Barbados': 'peru',
-              }
     
     #%% influence of data reduction
     # x-axis: reduction_level 
@@ -105,8 +98,8 @@ if __name__ == '__main__':
                              np.append(np.array([0]), 
                                        ds_com_red_mae.sel(channel=channel,
                                                           station=station)), 
-                             color=colors[station], label=station, linewidth=1, 
-                             marker='.')
+                             color=colors.colors_rs[station], label=station, 
+                             linewidth=1, marker='.')
                 
         else:  # era5
             axes[i].plot(x, 

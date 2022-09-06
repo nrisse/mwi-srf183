@@ -13,7 +13,7 @@ import xarray as xr
 import cartopy.crs as ccrs
 from string import ascii_lowercase as abc
 import os
-from mwi_info import mwi
+from helpers import mwi, colors
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -53,13 +53,6 @@ if __name__ == '__main__':
     ds_com_erh_std = ds_com_erh.tb.std(
         ('grid_x', 'grid_y')).isel(angle=9)
     
-    #%% colors for plot
-    colors = {'Ny-Alesund': 'cornflowerblue',
-              'Essen': 'seagreen',
-              'Singapore': 'palevioletred',
-              'Barbados': 'peru',
-              }
-    
     #%% plot all spectra and the mean spectrum in separate subplots
     fig, axes = plt.subplots(2, 3, figsize=(7, 5), constrained_layout=True,
                              sharex=True, sharey=True)
@@ -84,7 +77,7 @@ if __name__ == '__main__':
         # individual profiles
         ax.plot(ds_com_rsd.frequency*1e-3,
                 ds_com_rsd.tb.sel(profile=ds_com_rsd.station == station).isel(
-                    angle=9).T, color=colors[station], lw=0.1)
+                    angle=9).T, color=colors.colors_rs[station], lw=0.1)
         
         # mean profile
         ax.plot(ds_com_rsd_mean.frequency*1e-3, 
@@ -162,14 +155,15 @@ if __name__ == '__main__':
     for station in ds_com_rsd_mean.station.values:
         
         ax.plot(ds_com_rsd.frequency*1e-3, 
-                ds_com_rsd_mean.sel(station=station), color=colors[station], 
+                ds_com_rsd_mean.sel(station=station), 
+                color=colors.colors_rs[station], 
                 linewidth=1.5, label=station, zorder=3)
         ax.fill_between(x=ds_com_rsd.frequency*1e-3, 
                         y1=ds_com_rsd_mean.sel(station=station) -
                            ds_com_rsd_std.sel(station=station), 
                         y2=ds_com_rsd_mean.sel(station=station) +
                            ds_com_rsd_std.sel(station=station), 
-                        color=colors[station], alpha=0.3, zorder=1, lw=0)
+                        color=colors.colors_rs[station], alpha=0.3, zorder=1, lw=0)
     
     # add MWI channels
     for i, channel in enumerate(mwi.channels_str):

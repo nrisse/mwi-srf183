@@ -16,8 +16,7 @@ import numpy as np
 from string import ascii_lowercase as abc
 import matplotlib.pyplot as plt
 import os
-from srf_reader import Sensitivity
-from mwi_info import mwi
+from helpers import Sensitivity, mwi
 from dotenv import load_dotenv
 
 load_dotenv()

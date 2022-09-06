@@ -4,8 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 import os
-from mwi_info import mwi
-from radiosonde import wyo 
+from helpers import mwi, wyo 
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -134,15 +133,6 @@ if __name__ == '__main__':
                         bbox_inches='tight')
             
             plt.close('all')
-    
-    #%% colors
-    colors = {'Ny-Alesund': 'cornflowerblue',
-              'Essen': 'seagreen',
-              'Singapore': 'palevioletred',
-              'Barbados': 'peru',
-              }
-    
-    
 
     #%% TB difference left and right of bandpass
     # needs to select same frequencies as for srf orig, because the are 
@@ -164,7 +154,8 @@ if __name__ == '__main__':
     
     ds_com_rsd_tb_imb_stack = ds_com_rsd_tb_imb.isel(angle=9).stack(
         {'z': ('frequency', 'profile')})
-    c_list = [colors[wyo.id_station[s.split('_')[1]]] for s in ds_com_rsd_tb_imb_stack.profile.values]
+    c_list = [colors.colors_rs[wyo.id_station[s.split('_')[1]]] 
+              for s in ds_com_rsd_tb_imb_stack.profile.values]
     ax.scatter(
         ds_com_rsd_tb_imb_stack.frequency*1e-3,
         ds_com_rsd_tb_imb_stack, 

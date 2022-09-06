@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from glob import glob
 import os
-from radiosonde import wyo
+from helpers import wyo, colors
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -118,13 +118,6 @@ if __name__ == '__main__':
     RS = Radiosonde()
     RS.make_mean_profile()
     
-    #%% colors for plot
-    colors = {'Ny-Alesund': 'cornflowerblue',
-              'Essen': 'seagreen',
-              'Singapore': 'palevioletred',
-              'Barbados': 'peru',
-              }
-    
     #%% plot radiosonde mean profiles
     fig, axes = plt.subplots(1, 2, figsize=(5, 4), sharey=True)
         
@@ -132,18 +125,20 @@ if __name__ == '__main__':
         
         print(station_id)
         
-        c = colors[wyo.id_station[station_id]]
+        c = colors.colors_rs[wyo.id_station[station_id]]
         
         for i, var in enumerate(['T [C]', 'RH [%]']):
         
             mean = RS.data[station_id]['mean'][var].values
             sd = RS.data[station_id]['std'][var].values
             
-            axes[i].plot(mean, RS.data['p [hPa]'], color=c, linewidth=1.5, label=wyo.id_station[station_id])
+            axes[i].plot(mean, RS.data['p [hPa]'], color=c, linewidth=1.5, 
+                         label=wyo.id_station[station_id])
             axes[i].fill_betweenx(y=RS.data['p [hPa]'], x1=mean-sd, x2=mean+sd, 
                                   color=c, alpha=0.2, linewidth=0)
         
-    axes[0].legend(bbox_to_anchor=(1.09, -0.2), ncol=4, loc='upper center', frameon=True, fontsize=8)
+    axes[0].legend(bbox_to_anchor=(1.09, -0.2), ncol=4, loc='upper center', 
+                   frameon=True, fontsize=8)
 
     axes[0].set_ylim([np.max(RS.data['p [hPa]']), np.min(RS.data['p [hPa]'])])
     axes[1].set_xlim([0, 100])
