@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 import os
-from mwi_info import mwi
+from helpers import mwi
 from dotenv import load_dotenv
 
 load_dotenv()

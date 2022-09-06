@@ -181,8 +181,6 @@ if __name__ == '__main__':
     plt.close('all')
     
     #%% 2d histogram iwv and tb dependence
-    # plots are too small, either just plot one of the calculation methods
-    # or nothing!
     # x: TB MWI
     # y: IWV
     # color: dTb    

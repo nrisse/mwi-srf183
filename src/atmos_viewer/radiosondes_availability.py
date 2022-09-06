@@ -21,7 +21,7 @@ if __name__ == '__main__':
     ds_com_rsd = xr.open_dataset(os.path.join(
         os.environ['PATH_BRT'],
         'TB_radiosondes_2019_MWI.nc'))
-
+    
     #%% data availability
     text = 'Data availability of station {} in 2019: {}'
     for station in np.unique(ds_com_rsd.station.values):
@@ -34,7 +34,8 @@ if __name__ == '__main__':
     
     dates = pd.date_range('2019-01-01', '2019-12-31', freq='1D')
     
-    df = pd.DataFrame(index=dates, data=0, columns=np.unique(ds_com_rsd.station))
+    df = pd.DataFrame(index=dates, data=0, 
+                      columns=np.unique(ds_com_rsd.station))
     for station in df.columns:
         df.loc[ds_com_rsd.time.dt.date.sel(
             profile=ds_com_rsd.station==station), station] = 1
@@ -62,7 +63,8 @@ if __name__ == '__main__':
     # annotate station
     y = np.arange(0.5, -3, -1)
     for i, name in enumerate(df.columns):
-        ax.annotate(text=name, xy=(dates[0], y[i]), xycoords='data', ha='right', va='center')
+        ax.annotate(text=name, xy=(dates[0], y[i]), xycoords='data', 
+                    ha='right', va='center')
 
     plt.savefig(os.path.join(
         os.environ['PATH_PLT'],

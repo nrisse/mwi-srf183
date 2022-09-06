@@ -2,9 +2,6 @@
 Comparison of virtual MWI observation under original SRF and the four estimates
 based on reference frequencies (x3) and top-hat function displayed as map.
 
-All other ways of displaying the relationship are found in other scripts, 
-where also the radiosondes are evaluated.
-
 How to use the script:
     - select one of the two era-5 simulations (with and without hydrometeors)
     - select the respective extension, which modifies figure filename
@@ -18,7 +15,7 @@ import numpy as np
 import matplotlib.ticker as mticker
 from string import ascii_lowercase as abc
 import os
-from mwi_info import mwi
+from helpers import mwi
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -173,11 +170,13 @@ if __name__ == '__main__':
                 transform=data_proj)
     
     fig.colorbar(im, ax=axes, orientation='vertical', shrink=0.33,
-                 label='$\Delta$TB$_{\mathrm{all-sky}}$ - $\Delta$TB$_{\mathrm{clear-sky}}$ [K]', ticks=np.arange(-0.8, 0.9, 0.4))
+                 label='$\Delta$TB$_{\mathrm{all-sky}}$ - '+
+                 '$\Delta$TB$_{\mathrm{clear-sky}}$ [K]', 
+                 ticks=np.arange(-0.8, 0.9, 0.4))
         
     plt.savefig(os.path.join(
         os.environ['PATH_PLT'],
-        'evaluation/dtb_mwi_est_grid_era5_cloud_minus_clear.png', dpi=300,
+        'evaluation/dtb_mwi_est_grid_era5_cloud_minus_clear.png'), dpi=300,
         bbox_inches='tight')
     
     plt.close('all')

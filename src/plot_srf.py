@@ -10,8 +10,7 @@ from string import ascii_lowercase as abc
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
-from srf_reader import Sensitivity
-from mwi_info import mwi
+from helpers import Sensitivity, mwi
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,6 +24,20 @@ if __name__ == '__main__':
     sen_dsb = Sensitivity(filename=Sensitivity.files[0])
     sen = Sensitivity(filename=Sensitivity.files[1])
     
+    #%% number of measurements in bandwidth
+    ds = sen_dsb
+    
+    for i, ch in enumerate(mwi.channels_int):
+        
+        f = dict(frequency=
+            ((mwi.freq_bw[i, 0] < ds.frequency*1e-3) & \
+             (mwi.freq_bw[i, 1] > ds.frequency*1e-3)) | \
+            ((mwi.freq_bw[i, 2] < ds.frequency*1e-3) & \
+             (mwi.freq_bw[i, 3] > ds.frequency*1e-3))
+            )
+        
+        print(len(ds.frequency.sel(**f)))
+        
     #%% calculate some statistics
     # imbalance for every channel from dsb measurement
     for i, channel in enumerate(sen_dsb.data.channel.values):

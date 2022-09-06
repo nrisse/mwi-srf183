@@ -5,8 +5,7 @@ Define frequencies used for PAMTRA simulation and write them to a file.
 
 import numpy as np
 import os
-from srf_reader import Sensitivity
-from mwi_info import mwi
+from helpers import mwi, Sensitivity
 from dotenv import load_dotenv
 
 load_dotenv()

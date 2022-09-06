@@ -1,5 +1,5 @@
 """
-Influence of SRF perturbations on the MWI observation
+Influence of SRF perturbations on the MWI observation.
 
 The difference between the MWI observation under perturbed SRF and under the
 original SRF is analyzed. For the radiosondes, statistics are calculated over
@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import xarray as xr
 from string import ascii_lowercase as abc
 import os
-from mwi_info import mwi
+from helpers import mwi
 from dotenv import load_dotenv
 
 load_dotenv()

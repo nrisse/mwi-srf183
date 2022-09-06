@@ -26,9 +26,7 @@ import numpy as np
 import pandas as pd
 import os
 from datetime import datetime
-from srf_reader import Sensitivity
-from mwi_info import mwi
-from radiosonde import wyo
+from helpers import Sensitivity, mwi, wyo
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -139,7 +137,7 @@ if __name__ == '__main__':
     ds_com['srf_err_dB'] = ds_srf_err['srf_err_dB']
     ds_com['srf_err'] = ds_srf_err['srf_err']
     
-    # create idealized srf for the modelled mwi observation from mwi_info
+    # create idealized srf
     # everywhere nan, except for the specified frequencies
     srf_0 = xr.concat(
         [xr.DataArray(data=np.ones(len(mwi.freq_center_MHz[i, :])),

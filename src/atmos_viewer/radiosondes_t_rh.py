@@ -75,11 +75,13 @@ class Radiosonde:
     
             # get index of bins to which each value in ind_var belongs
             # interval does not include the right edge
-            # left bin end is open: bins[i-1] <= x < bins[i] (if True, array get value i at position of x)
+            # left bin end is open: bins[i-1] <= x < bins[i] (if True, array 
+            # get value i at position of x)
             digitized = np.digitize(x=p, bins=p_grid)
         
             # calculate means over time and height for every height bin
-            # bins are indiced until the UPPER edge thus not starting with h_bin=0m
+            # bins are indiced until the UPPER edge thus not starting with 
+            # h_bin=0m
     
             # initialize arrays for statistics
             mean = np.full(shape=(n, values.shape[1]), fill_value=np.nan)
@@ -88,11 +90,12 @@ class Radiosonde:
             # loop of length of bins
             for i in range(n):
     
-                # get values within the bin (digitized has same shape as values)
+                # get values within bin (digitized has same shape as values)
                 values_bin = values[digitized == i, :]
     
                 # calculate mean and standard deviation
-                if np.sum(~np.isnan(values_bin)) > 0:  # check if array has at least one non-NaN value
+                # check if array has at least one non-NaN value
+                if np.sum(~np.isnan(values_bin)) > 0:  
                 
                     mean[i, :] = np.nanmean(values_bin, axis=0)
                     std[i, :] = np.nanstd(values_bin, axis=0)
