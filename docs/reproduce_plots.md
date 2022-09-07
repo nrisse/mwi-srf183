@@ -1,12 +1,26 @@
-# Guide to reproduce plots
-## Figure 1: bandpass data
-- plot_bandpass_measurement.py, line 489
+# Reproduce plots from study
+This list summarizes the required steps to reproduce the results presented in 
+the report. Most script use helper functions defined in `src/helpers`.
 
-## Figure 2: era-5 integrated hydrometeors
-- data_viewer_era5.py, line 96
+- Figure 1: **SRF measurements**
+  - (`srf_viewer.py`)[../src/srf_analysis/srf_viewer.py]
+- Figure 2: **ERA-5 integrated hydrometeors**
+  - `src/atmos_viewer/era5.py`
+- Figure 3: **TB spectra**
+  - `src/evaluation/tb_spectra.py
+- Figure 4: **Difference between SRFs**
+  - `src/srf_analysis/srf_comparison.py`
+- Figure 5: ****
+  - `src/`
+- Figure 6: ****
+  - `src/`
+- Figure 7: ****
+  - `src/`
+- Figure 8: ****
+  - `src/`
+- Figure 9: ****
+  - `src/`
 
-## Figure 3: tb spectra
-- tb_spectra.py, line 61
 
 ## Figure 4: systematic srf errors
 - bandpass_measurements/plot_perturbations.py
@@ -27,8 +41,6 @@
 ## Figure 9: effect of sampling interval reduction
 - evaluation_srf_reduced_sampling.py, entire script
 
-
-
 ## Basic scripts needed for multiple figures
 - script to read sensitivity data: importer/read_sensitivity.py --> read 
   sensitivity to xarray.Dataset from one of the two .xlsx files. Raw and 
@@ -36,7 +48,6 @@
 - mwi_info/mwi_183.py: contains MWI channel specifications and labels (mwi)
 - path_setter/path.py: defines paths where data and figures are stored 
   (path_data, path_plot)
-
 
 # Additional scripts used for written information
 - spectral TB gradients and differences described in forward simulation chapter 

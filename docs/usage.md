@@ -17,7 +17,8 @@ Download the data as described in the publication. The following lists the files
 - Spectral response functions
     - PATH_SRF: MWI-RX183_DSB_Matlab.xlsx
     - PATH_SRF: MWI-RX183_Matlab.xlsx
-    - PATH_SRF: rtcoef_gpm_1_gmi_srf_srf/rtcoef_gpm_1_gmi_srf_srf_ch??.txt
+    - PATH_SRF: rtcoef_gpm_1_gmi_srf_srf_ch12.txt
+    - PATH_SRF: rtcoef_gpm_1_gmi_srf_srf_ch13.txt
 - Atmospheric data
     - PATH_ATM: era5-pressure-levels_20150331_1200.nc
     - PATH_ATM: era5-single-levels_20150331_1200.nc
@@ -29,8 +30,6 @@ Download the data as described in the publication. The following lists the files
 - setup python environment for PAMTRA simulation (python3)
 - set environment variable which defines the base directory (currently PATH_PHD 
   variable, also used in PAMTRA simulations directly)
-- all scripts are available in the github repository
-  https://github.com/nrisse/MWI-bandpass
 
 ## Overview of output data
 The following files will be created:

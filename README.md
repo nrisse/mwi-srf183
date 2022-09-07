@@ -1,5 +1,6 @@
-# Bias from the spectral response of MetOp-SG MWI 183 GHz channels
-We conducted a study for 
+# Assessment of using the spectral responsivity of MetOp-SG's Microwave Imager (MWI) for the radiative transfer at 183 GHz
+
+
 [EUMETSAT](https://www.eumetsat.int/) 
 to find out, how large the error is when neglecting the spectral response 
 function of 
