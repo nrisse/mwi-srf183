@@ -4,16 +4,17 @@ The following provides an overview of the steps to reproduce the study results.
 ## Environment variables
 Path locations for this project are defined by a `.env` file. An example
 containing all required path variables is provided in the root directory.
-Simply copy the example file `.env.example` to `.env` and assign your paths
+Simply copy the example file [`.env.example`](../.env.example) to `.env` and assign your paths
 like `PATH_SRF=/data/srf`. Four environment variables are required:
 - `PATH_SRF`: path with SRF files.
 - `PATH_BRT`: path with brightness temperature data (i.e. forward simulations).
 - `PATH_ATM`: path with atmopsheric data (radiosondes and ERA-5 fields).
 - `PATH_PLT`: path with plots.
-- `PATH_SIM`: path with complete output of PAMTRA simulation
+- `PATH_SIM`: path with complete output of PAMTRA simulation.
 
 ## Get input data
-Download the data as described in the publication. The following lists the files and their expected location:
+Download the data as described in the publication. The following lists the files 
+and their expected location:
 - Spectral response functions
     - PATH_SRF: MWI-RX183_DSB_Matlab.xlsx
     - PATH_SRF: MWI-RX183_Matlab.xlsx
