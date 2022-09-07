@@ -2,15 +2,22 @@
 The following provides an overview of the steps to reproduce the study results.
 
 ## Python environment
-The scripts require basic functionalities from numpy (1.21.0), xarray (0.20.1), 
-pandas (1.4.2), matplotlib-base (3.5.2), cartopy (0.20.2), requests (2.28.0), 
-and python-dotenv (0.20.0). However, also other versions of the specified 
-modules should work.
+The scripts were developed under python 3.10.5 and require basic functionalities 
+from 
+- numpy (1.21.0)
+- xarray (0.20.1), 
+- pandas (1.4.2), 
+- matplotlib-base (3.5.2), 
+- cartopy (0.20.2), 
+- requests (2.28.0), and 
+- python-dotenv (0.20.0). 
+However, also other versions are expected to work.
 
 The python environment required for PAMTRA simulations is described
-(here)[https://pamtra.readthedocs.io/en/latest/]. A separate python 3 
-environment was created as described in the documentation with the additional 
-modules xarray (0.19.0) and python-dotenv (0.20.0).
+[here](https://pamtra.readthedocs.io/en/latest/installation.html). 
+A separate python 3.8.10 environment was created as described in the 
+documentation with the additional modules xarray (0.19.0) and python-dotenv 
+(0.20.0).
 
 ## Environment variables
 Path locations for this project are defined by a `.env` file. An example
