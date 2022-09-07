@@ -1,20 +1,34 @@
 # Getting started
-The following provides an overview of the steps to reproduce the study results. 
+The following provides an overview of the steps to reproduce the study results.
+
+## Python environment
+The scripts require basic functionalities from numpy (1.21.0), xarray (0.20.1), 
+pandas (1.4.2), matplotlib-base (3.5.2), cartopy (0.20.2), requests (2.28.0), 
+and python-dotenv (0.20.0). However, also other versions of the specified 
+modules should work.
+
+The python environment required for PAMTRA simulations is described
+(here)[https://pamtra.readthedocs.io/en/latest/]. A separate python 3 
+environment was created as described in the documentation with the additional 
+modules xarray (0.19.0) and python-dotenv (0.20.0).
 
 ## Environment variables
 Path locations for this project are defined by a `.env` file. An example
 containing all required path variables is provided in the root directory.
-Simply copy the example file [`.env.example`](../.env.example) to `.env` and assign your paths
-like `PATH_SRF=/data/srf`. Four environment variables are required:
+Simply copy the example file [`.env.example`](../.env.example) to `.env` and 
+assign your paths like `PATH_SRF=/data/srf`. These environment variables are 
+required:
 - `PATH_SRF`: path with SRF files.
 - `PATH_BRT`: path with brightness temperature data (i.e. forward simulations).
 - `PATH_ATM`: path with atmopsheric data (radiosondes and ERA-5 fields).
 - `PATH_PLT`: path with plots.
 - `PATH_SIM`: path with complete output of PAMTRA simulation.
 
-## Get input data
-Download the data as described in the publication. The following lists the files 
-and their expected location:
+## Data
+### Input
+Download the data as described in the publication. For the radiosonde data, a
+download script is provided [here](../src/helpers/download_radiosondes.py).
+The following lists the files and their expected location:
 - Spectral response functions
     - PATH_SRF: MWI-RX183_DSB_Matlab.xlsx
     - PATH_SRF: MWI-RX183_Matlab.xlsx
@@ -25,14 +39,7 @@ and their expected location:
     - PATH_ATM: era5-single-levels_20150331_1200.nc
     - PATH_ATM: yyyy/mm/dd/ID_?????_yyyymmddhhmm.txt
 
-## Python environment
-- setup python environment for the analysis as specified in the environment.yml 
-  or spec-file.txt
-- setup python environment for PAMTRA simulation (python3)
-- set environment variable which defines the base directory (currently PATH_PHD 
-  variable, also used in PAMTRA simulations directly)
-
-## Overview of output data
+### Output
 The following files will be created:
 - PAMTRA simulation
     - PATH_BRT: frequencies.txt
