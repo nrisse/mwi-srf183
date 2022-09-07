@@ -246,12 +246,6 @@ if __name__ == '__main__':
             color='dimgray',
             )
         
-        # offset        
-        ax.axhline(
-            y=ds.sen2_diff_dB.sel(channel=i, **f).mean('frequency'),
-            color='#f3722c', label='mean bias',
-            )
-        
         # fit line
         a, b = ds.sen2_diff_dB.sel(channel=i, **f).polyfit(
             dim='frequency', deg=1).polyfit_coefficients
