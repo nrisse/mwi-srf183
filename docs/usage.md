@@ -4,7 +4,7 @@ The following provides an overview of the steps to reproduce the study results.
 ## Python environment
 The scripts were developed under python 3.10.5 and require basic functionalities 
 from 
-- numpy (1.21.0)
+- numpy (1.21.0),
 - xarray (0.20.1), 
 - pandas (1.4.2), 
 - matplotlib-base (3.5.2), 
@@ -34,9 +34,9 @@ required:
 
 ## Data
 ### Input
-Download the data as described in the publication. For the radiosonde data, a
-download script is provided [here](../src/helpers/download_radiosondes.py).
-The following lists the files and their expected location:
+Retrieve the data from the source listed in chapter 7 (*Code and data availability*) of the report. 
+For the radiosonde data, a download script is provided [here](../src/helpers/download_radiosondes.py).
+The following lists the expected location and file names of the input data:
 - Spectral response functions
     - `PATH_SRF`: `MWI-RX183_DSB_Matlab.xlsx`
     - `PATH_SRF`: `MWI-RX183_Matlab.xlsx`
@@ -48,7 +48,7 @@ The following lists the files and their expected location:
     - `PATH_ATM`: `yyyy/mm/dd/ID_?????_yyyymmddhhmm.txt`
 
 ### Output
-The following files will be created:
+The following output datasets will be created, as described later on:
 - PAMTRA simulation
     - `PATH_BRT`: `frequencies.txt`
     - `PATH_BRT`: `TB_era5.nc`
@@ -65,7 +65,7 @@ The following files will be created:
     - `PATH_PLT`: several plots are saved here.
 
 ## PAMTRA simulations
-The following provides a step-by-step description on how to run the PAMRA
+The following provides a step-by-step description on how to run the PAMTRA
 simulation after the environment was created.
 1. Create file with frequencies (`frequencies.txt` in `PATH_BRT`) using 
    [write_frequencies_to_file.py](../src/pamtra/write_frequencies_to_file.py)
@@ -93,6 +93,6 @@ simulation are kept in the same dataset for the analysis later.
 
 ## Data analysis
 The data analysis is based on all other scripts. 
-[This list](../docs/reproduce_plots.md) contains all the
+This [list](../docs/reproduce_plots.md) contains all the
 scripts required to create the plots of the final report after the output data
 was created.

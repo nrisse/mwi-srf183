@@ -1,4 +1,4 @@
-# Reproduce plots in study
+# Reproduce figures in report
 This list summarizes the required steps to reproduce the results presented in 
 the report. Most script use helper functions defined in `src/helpers`. These
 provide the MWI channel specifications at 183 GHz ([`mwi_183.py`](../src/helpers/mwi_183.py))
