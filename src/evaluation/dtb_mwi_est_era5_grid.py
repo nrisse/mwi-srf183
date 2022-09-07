@@ -49,11 +49,11 @@ if __name__ == '__main__':
     
     #%% tb difference on map for the four calculation methods
     # choose either with or without hydrometeors
-    ds_com = ds_com_era
-    ext = ''
+    #ds_com = ds_com_era
+    #ext = ''
     
-    #ds_com = ds_com_erh
-    #ext = '_hyd'
+    ds_com = ds_com_erh
+    ext = '_hyd'
     
     fig, axes = plt.subplots(4, 5, figsize=(6, 6), 
                              sharex=True, sharey=True,
@@ -111,7 +111,7 @@ if __name__ == '__main__':
         
     plt.savefig(os.path.join(
         os.environ['PATH_PLT'],
-        'evaluation/dtb_mwi_est_grid_era5'+ext+'.png'), dpi=300,
+        'evaluation_dtb_mwi_est_grid_era5'+ext+'.png'), dpi=300,
                 bbox_inches='tight')
     
     plt.close('all')
@@ -176,7 +176,7 @@ if __name__ == '__main__':
         
     plt.savefig(os.path.join(
         os.environ['PATH_PLT'],
-        'evaluation/dtb_mwi_est_grid_era5_cloud_minus_clear.png'), dpi=300,
+        'evaluation_dtb_mwi_est_grid_era5_cloud_minus_clear.png'), dpi=300,
         bbox_inches='tight')
     
     plt.close('all')

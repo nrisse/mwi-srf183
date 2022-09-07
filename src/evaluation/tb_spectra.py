@@ -1,6 +1,5 @@
 """
-Plot brightness temperature spectrum of radiosonde profiles and ERA-5
-simulation.
+Plot brightness temperature spectrum of radiosonde profiles and ERA-5.
 """
 
 
@@ -10,7 +9,7 @@ import xarray as xr
 import cartopy.crs as ccrs
 from string import ascii_lowercase as abc
 import os
-from helpers import mwi, colors
+from helpers import mwi, colors, wyo
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -23,13 +22,21 @@ if __name__ == '__main__':
     ds_com_rsd = xr.open_dataset(
         os.path.join(os.environ['PATH_BRT'],
                      'TB_radiosondes_2019_MWI.nc'))
+
     ds_com_era = xr.open_dataset(
         os.path.join(os.environ['PATH_BRT'],
                      'TB_era5_MWI.nc'))
     ds_com_erh = xr.open_dataset(
         os.path.join(os.environ['PATH_BRT'],
                      'TB_era5_hyd_MWI.nc'))
-
+    
+    # rearrange radiosonde tb data
+    ds_com_rsd['tb'] = ds_com_rsd.tb.transpose('frequency', 'profile', 'angle')
+    
+    # stack spatial coordinates from era-5
+    ds_com_era_stack = ds_com_era.stack({'profile': ('grid_x', 'grid_y')})
+    ds_com_erh_stack = ds_com_erh.stack({'profile': ('grid_x', 'grid_y')})
+    
     #%% calculate mean and std of profiles
     # radiosondes
     ds_com_rsd_mean = ds_com_rsd.tb.groupby(
@@ -74,7 +81,7 @@ if __name__ == '__main__':
         # individual profiles
         ax.plot(ds_com_rsd.frequency*1e-3,
                 ds_com_rsd.tb.sel(profile=ds_com_rsd.station == station).isel(
-                    angle=9).T, color=colors.colors_rs[station], lw=0.1)
+                    angle=9), color=colors.colors_rs[station], lw=0.1)
         
         # mean profile
         ax.plot(ds_com_rsd_mean.frequency*1e-3, 
@@ -82,10 +89,6 @@ if __name__ == '__main__':
                 color='k', linewidth=1.5, label=station)
         
     # era5    
-    # stack the spatial coordinates
-    ds_com_era_stack = ds_com_era.stack({'grid': ['grid_x', 'grid_y']})
-    ds_com_erh_stack = ds_com_erh.stack({'grid': ['grid_x', 'grid_y']})
-          
     # individual profiles
     axes[0, 2].plot(
         ds_com_era_stack.frequency*1e-3, 
@@ -139,9 +142,10 @@ if __name__ == '__main__':
     axes[1, 0].set_xlabel('Frequency [GHz]')
     axes[1, 0].set_ylabel('TB [K]')
     
-    plt.savefig(os.path.join(os.environ['PATH_PLT'], 
-                             'brightness_temperature/tb_spectra.png'), 
-                dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(
+        os.environ['PATH_PLT'], 
+        'tb_spectra.png'), 
+        dpi=300, bbox_inches='tight')
     
     plt.close('all')
 
@@ -190,7 +194,7 @@ if __name__ == '__main__':
         
     plt.savefig(os.path.join(
         os.environ['PATH_PLT'], 
-        'brightness_temperature/radiosondes_tb_spectra.png'), 
+        'tb_spectra_radiosondes.png'), 
                 dpi=300, bbox_inches='tight')
     
     #%% plot tb from ERA-5 field as would be observed by MWI
@@ -239,7 +243,77 @@ if __name__ == '__main__':
     
     plt.savefig(os.path.join(
         os.environ['PATH_PLT'], 
-        'brightness_temperature/era5_tb_mwi.png'), 
-                dpi=300, bbox_inches='tight')
+        'tb_mwi_era5.png'), 
+        dpi=300, bbox_inches='tight')
     
     plt.close('all')
+    
+    #%% calculation of gradients
+    # reduce to frequencies, where srf was measured
+    freq_srf_orig = ~np.isnan(ds_com_rsd.srf_orig.sel(channel=14))
+    
+    ds_com_rsd_tbl = ds_com_rsd.tb.sel(
+        frequency=(ds_com_rsd.frequency*1e-3 > mwi.absorpt_line) & freq_srf_orig)
+    ds_com_rsd_tbr = ds_com_rsd.tb.sel(
+        frequency=(ds_com_rsd.frequency*1e-3 < mwi.absorpt_line) & freq_srf_orig)
+    
+    #%% tb gradients of radiosonde profiles
+    # dtb/df for steps of 15 MHz (0.015 GHz), 
+    left = dict(
+        frequency=(ds_com_rsd.frequency*1e-3 < mwi.absorpt_line) & 
+        freq_srf_orig)
+    
+    right = dict(
+        frequency=(ds_com_rsd.frequency*1e-3 > mwi.absorpt_line) & 
+        freq_srf_orig)
+
+    ds_com_rsd_dtb_left = ds_com_rsd.tb.isel(angle=9).sel(left).diff(
+        'frequency', n=1, label='lower')
+            
+    ds_com_rsd_dtb_right = ds_com_rsd.tb.isel(angle=9).sel(right).diff(
+        'frequency', n=1, label='upper')
+    
+    fig, ax = plt.subplots(1, 1)
+
+    ax.plot(ds_com_rsd_dtb_left.frequency*1e-3,
+            ds_com_rsd_dtb_left/0.015, color='gray')
+    
+    ax.plot(ds_com_rsd_dtb_left.frequency*1e-3,
+            ds_com_rsd_dtb_left.mean('profile')/0.015, color='k')
+    
+    ax.plot(ds_com_rsd_dtb_right.frequency*1e-3,
+            ds_com_rsd_dtb_right/0.015, color='gray')
+    
+    ax.plot(ds_com_rsd_dtb_right.frequency*1e-3,
+            ds_com_rsd_dtb_right.mean('profile')/0.015, color='k')
+    
+    ax.set_ylim(-15, 15)
+    
+    ax.axhline(y=0)
+    
+    # add channel frequencies
+    for x in mwi.freq_center.flatten():
+        ax.axvline(x)
+        
+    #%% tb imbalance lower and upper bandpass    
+    ds_com_rsd_tbl['frequency'] = ds_com_rsd_tbr.frequency[::-1]
+        
+    ds_com_rsd_tb_imb = ds_com_rsd_tbl - ds_com_rsd_tbr
+    
+    fig, ax = plt.subplots(1, 1)
+    
+    ds_com_rsd_tb_imb_stack = ds_com_rsd_tb_imb.isel(angle=9).stack(
+        {'z': ('frequency', 'profile')})
+    c_list = [colors.colors_rs[wyo.id_station[s.split('_')[1]]] 
+              for s in ds_com_rsd_tb_imb_stack.profile.values]
+    ax.scatter(
+        ds_com_rsd_tb_imb_stack.frequency*1e-3,
+        ds_com_rsd_tb_imb_stack, 
+        color=c_list)
+    
+    ax.plot(ds_com_rsd_tb_imb.frequency*1e-3,
+            ds_com_rsd_tb_imb.mean('profile').isel(angle=9), color='k')
+    
+    for x in mwi.freq_center.flatten():
+        ax.axvline(x)
+    

@@ -91,7 +91,7 @@ if __name__ == '__main__':
     
     plt.savefig(os.path.join(
         os.environ['PATH_PLT'],
-        'data/era5_surface_variables_large_scale.png'),
+        'era5_surface_variables_large_scale.png'),
         dpi=300, bbox_inches='tight')
         
     #%% plot state of atmosphere 
@@ -153,7 +153,7 @@ if __name__ == '__main__':
         
     plt.savefig(os.path.join(
         os.environ['PATH_PLT'],
-        'data/era5_int_hyd.png'), dpi=300, bbox_inches='tight')
+        'era5_int_hyd.png'), dpi=300, bbox_inches='tight')
     
     plt.close('all')
     
@@ -200,7 +200,7 @@ if __name__ == '__main__':
     
     plt.savefig(os.path.join(
         os.environ['PATH_PLT'],
-        +'data/era5_emissivity.png'), dpi=300, bbox_inches='tight')
+        'era5_surface_emissivity.png'), dpi=300, bbox_inches='tight')
     
     plt.close('all')
     

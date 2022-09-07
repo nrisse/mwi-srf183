@@ -74,7 +74,7 @@ if __name__ == '__main__':
     style = styles[0]
     
     # choose if with or without era-5
-    era5 = True  # this is just as a test to see if clear sky matches
+    era5 = False  # this is just as a test to see if clear sky matches
     
     fig, axes = plt.subplots(5, 4, figsize=(7, 6), sharex=True, sharey=True,
                              constrained_layout=True)
@@ -176,7 +176,7 @@ if __name__ == '__main__':
     
     plt.savefig(os.path.join(
         os.environ['PATH_PLT'],
-        'evaluation/dtb_mwi_est_vs_'+style+'_radiosondes'+ext+'.png'), 
+        'evaluation_dtb_mwi_est_vs_'+style+'_radiosondes'+ext+'.png'), 
         dpi=400, bbox_inches='tight')
     
     plt.close('all')
@@ -247,8 +247,8 @@ if __name__ == '__main__':
             fig.colorbar(im, ax=axes[i, j], orientation='horizontal')
             
     plt.savefig(os.path.join(
-        os.environ['PATH_BRT'],
-        'evaluation/dtb_mwi_est_vs_tb_obs_vs_iwv_radiosondes.png'), 
+        os.environ['PATH_PLT'],
+        'evaluation_dtb_mwi_est_vs_tb_obs_vs_iwv_radiosondes.png'), 
         dpi=400, bbox_inches='tight')
     
     plt.close('all')

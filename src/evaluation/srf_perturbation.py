@@ -32,23 +32,23 @@ plt.ion()
 if __name__ == '__main__':
     
     # read nc files
-    ds_com = xr.open_dataset(os.path.join(
-        os.environ['PATH_BRT'],
-        'TB_radiosondes_2019_MWI.nc'
-        ))
-    ext = '_radiosondes'    
+    #ds_com = xr.open_dataset(os.path.join(
+    #    os.environ['PATH_BRT'],
+    #    'TB_radiosondes_2019_MWI.nc'
+    #    ))
+    #ext = '_radiosondes'    
     
     #ds_com = xr.open_dataset(os.path.join(
     #    os.environ['PATH_BRT'],
-    #    'TB_era5_hyd_MWI.nc')  
+    #    'TB_era5_hyd_MWI.nc'))
     #ext = '_era5_hyd'
     
-    #ds_com = xr.open_dataset(os.path.join(
-    #    os.environ['PATH_BRT'],
-    #    'TB_era5_MWI.nc')  
-    #ext = '_era5'
+    ds_com = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'],
+        'TB_era5_MWI.nc'))
+    ext = '_era5'
     
-    #ds_com = ds_com.stack({'profile': ['grid_x', 'grid_y']})
+    ds_com = ds_com.stack({'profile': ['grid_x', 'grid_y']})
     
     #%% calculate statistics (mean absolute error)
     ds_com_dtb_mae = np.fabs(ds_com.dtb_mwi_err).mean('profile')
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     
     plt.savefig(os.path.join(
         os.environ['PATH_PLT'],
-        'evaluation/perturbation_effect'+ext+'.png'), dpi=300, 
+        'evaluation_perturbation_effect'+ext+'.png'), dpi=300, 
         bbox_inches='tight')
     
     plt.close('all')

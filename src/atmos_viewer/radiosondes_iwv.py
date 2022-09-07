@@ -75,7 +75,7 @@ if __name__ == '__main__':
         
     plt.savefig(os.path.join(
         os.environ['PATH_PLT'],
-        'data/radiosondes_iwv_monthly.png'),
+        'radiosondes_iwv_monthly.png'),
         dpi=300, bbox_inches='tight')
     
     plt.close('all')
