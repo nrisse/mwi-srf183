@@ -80,7 +80,7 @@ simulation after the environment was created.
    Two output files are created in `PATH_BRT` (smaller file) and 
    `PATH_SIM` (larger file).
 
-The larger file can be deleted, as it is not required for further analysis.
+The larger files can be deleted, as they are not required for further analysis.
 
 # MWI observation calculation
 Finally, three files containting the MWI brightness temperatures are created and
@@ -93,6 +93,6 @@ simulation are kept in the same dataset for the analysis later.
 
 # Data analysis
 The data analysis is based on all other scripts. 
-[This list](docs/reproduce_plots.md) contains all the
+[This list](../docs/reproduce_plots.md) contains all the
 scripts required to create the plots of the final report after the output data
 was created.
