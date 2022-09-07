@@ -64,7 +64,7 @@ The following files will be created:
 - Figures
     - `PATH_PLT`: several plots are saved here.
 
-# PAMTRA simulations
+## PAMTRA simulations
 The following provides a step-by-step description on how to run the PAMRA
 simulation after the environment was created.
 1. Create file with frequencies (`frequencies.txt` in `PATH_BRT`) using 
@@ -82,7 +82,7 @@ simulation after the environment was created.
 
 The larger files can be deleted, as they are not required for further analysis.
 
-# MWI observation calculation
+## MWI observation calculation
 Finally, three files containting the MWI brightness temperatures are created and
 written to `PATH_BRT` with
 [tb_mwi_calculation.py](../src/tb_mwi_calculation/tb_mwi_calculation.py).
@@ -91,7 +91,7 @@ observations are calculated as well as respective differences to the
 observation based on the original SRF. All variables from the PAMTRA 
 simulation are kept in the same dataset for the analysis later. 
 
-# Data analysis
+## Data analysis
 The data analysis is based on all other scripts. 
 [This list](../docs/reproduce_plots.md) contains all the
 scripts required to create the plots of the final report after the output data
