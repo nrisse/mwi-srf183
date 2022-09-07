@@ -11,6 +11,7 @@ from
 - cartopy (0.20.2), 
 - requests (2.28.0), and 
 - python-dotenv (0.20.0). 
+
 However, also other versions are expected to work.
 
 The python environment required for PAMTRA simulations is described
@@ -37,67 +38,61 @@ Download the data as described in the publication. For the radiosonde data, a
 download script is provided [here](../src/helpers/download_radiosondes.py).
 The following lists the files and their expected location:
 - Spectral response functions
-    - PATH_SRF: MWI-RX183_DSB_Matlab.xlsx
-    - PATH_SRF: MWI-RX183_Matlab.xlsx
-    - PATH_SRF: rtcoef_gpm_1_gmi_srf_srf_ch12.txt
-    - PATH_SRF: rtcoef_gpm_1_gmi_srf_srf_ch13.txt
+    - `PATH_SRF`: `MWI-RX183_DSB_Matlab.xlsx`
+    - `PATH_SRF`: `MWI-RX183_Matlab.xlsx`
+    - `PATH_SRF`: `rtcoef_gpm_1_gmi_srf_srf_ch12.txt`
+    - `PATH_SRF`: `rtcoef_gpm_1_gmi_srf_srf_ch13.txt`
 - Atmospheric data
-    - PATH_ATM: era5-pressure-levels_20150331_1200.nc
-    - PATH_ATM: era5-single-levels_20150331_1200.nc
-    - PATH_ATM: yyyy/mm/dd/ID_?????_yyyymmddhhmm.txt
+    - `PATH_ATM`: `era5-pressure-levels_20150331_1200.nc`
+    - `PATH_ATM`: `era5-single-levels_20150331_1200.nc`
+    - `PATH_ATM`: `yyyy/mm/dd/ID_?????_yyyymmddhhmm.txt`
 
 ### Output
 The following files will be created:
 - PAMTRA simulation
-    - PATH_BRT: frequencies.txt
-    - PATH_BRT: TB_era5.nc
-    - PATH_BRT: TB_era5_hyd.nc
-    - PATH_BRT: TB_radiosondes_2019.nc
-    - PATH_SIM: TB_era5_complete.nc
-    - PATH_SIM: TB_era5_hyd_complete.nc
-    - PATH_SIM: TB_radiosondes_2019_complete.nc
+    - `PATH_BRT`: `frequencies.txt`
+    - `PATH_BRT`: `TB_era5.nc`
+    - `PATH_BRT`: `TB_era5_hyd.nc`
+    - `PATH_BRT`: `TB_radiosondes_2019.nc`
+    - `PATH_SIM`: `TB_era5_complete.nc`
+    - `PATH_SIM`: `TB_era5_hyd_complete.nc`
+    - `PATH_SIM`: `TB_radiosondes_2019_complete.nc`
 - MWI observations
-    - PATH_BRT: TB_era5_MWI.nc
-    - PATH_BRT: TB_era5_hyd_MWI.nc
-    - PATH_BRT: TB_radiosondes_2019_MWI.nc
+    - `PATH_BRT`: `TB_era5_MWI.nc`
+    - `PATH_BRT`: `TB_era5_hyd_MWI.nc`
+    - `PATH_BRT`: `TB_radiosondes_2019_MWI.nc`
 - Figures
-    - PATH_PLT: several figures in sub-directories
+    - `PATH_PLT`: several plots are saved here.
 
 # PAMTRA simulations
-- create file with frequencies used for PAMTRA simulations (frequencies.txt) 
-  using ./scripts/pamtra/write_frequencies_to_file.py
-- install PAMTRA from github repository and follow the instructions
-- run pamtra_simulation_era.py with python3 (tool in ./scripts/pamtra/tools to
-  write pamtra output to netcdf). This 
-  script is equivalent to the pamtra_simulation_era5.ipynb. Run once with and 
-  once without hydrometeors and adapt the file name of the output file manually.
-- run pamtra_simulation_radiosondes.ipynb (tool in ./scripts/pamtra/tools to
-  write pamtra output to netcdf). A dimension for the 
-  radiosonde profile is created already, and will be in the next step completed 
-  by extracting the date and station name.
-- finally, two files are written for each simulation. One file contains many 
-  variables provided by PAMTRA, the other file is reduced for the downstream 
-  analysis. All files are initially written to work directory. The two reduced 
-  files need to be copied to data/brightness_temperature (TB_era5.nc - ERA-5 
-  clear-sky, TB_era5_hyd.nc - ERA-5 all-sky, TB_era5.nc - radiosondes)
+The following provides a step-by-step description on how to run the PAMRA
+simulation after the environment was created.
+1. Create file with frequencies (`frequencies.txt` in `PATH_BRT`) using 
+   [write_frequencies_to_file.py](../src/pamtra/write_frequencies_to_file.py)
+2. Run 
+   [pamtra_simulation_era5.py](../src/pamtra/pamtra_simulation_era5.py) once with
+   and once without hydrometeors by setting the flag parameter in the script.
+   For each run, two output files are created in `PATH_BRT` (smaller file) and 
+   `PATH_SIM` (larger file).
+3. Run 
+   [pamtra_simulation_radiosondes.py](../src/pamtra/pamtra_simulation_radiosondes.py).
+   A dimension for the radiosonde profile is created.
+   Two output files are created in `PATH_BRT` (smaller file) and 
+   `PATH_SIM` (larger file).
+
+The larger file can be deleted, as it is not required for further analysis.
 
 # MWI observation calculation
-- run tb_mwi_calculation.py. Here, all the different SRF are defined and the MWI 
-  observations are calculated as well as respective differences to the 
-  observation based on the original SRF. All variables from the PAMTRA 
-  simulation are kept in the same dataset for the analysis later.
-- output files have the same name as the PAMTRA simulations with the additional 
-  extension '_MWI'
-- now, all the data is ready for the analysis and contained in these nc files in 
-  a consistent way:
-  - integrated hydrometeors (hydro_wp)
-  - integrated iwv (iwv)
-  - spectral tb variation
-  - original SRF
-  - reduced SRF
-  - perturbed SRF (offset in dB, dB, linear)
-  - estimation types SRFs (tophat, selected frequencies)
-  - tb based on the different SRF
-  - difference of tb based on different SRF to the TB from original SRF
-  - PAMTRA model settings (sfc_type, sfc_model, sfc_refl, emissivity, 
-    obs_height, ...)
+Finally, three files containting the MWI brightness temperatures are created and
+written to `PATH_BRT` with
+[tb_mwi_calculation.py](../src/tb_mwi_calculation/tb_mwi_calculation.py).
+Here, all the different SRF are defined and the MWI 
+observations are calculated as well as respective differences to the 
+observation based on the original SRF. All variables from the PAMTRA 
+simulation are kept in the same dataset for the analysis later. 
+
+# Data analysis
+The data analysis is based on all other scripts. 
+[This list](docs/reproduce_plots.md) contains all the
+scripts required to create the plots of the final report after the output data
+was created.
