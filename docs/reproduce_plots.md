@@ -3,7 +3,7 @@ This list summarizes the required steps to reproduce the results presented in
 the report. Most script use helper functions defined in `src/helpers`.
 
 - Figure 1: **SRF measurements**
-  - (`srf_viewer.py`)[../src/srf_analysis/srf_viewer.py]
+  - [`srf_viewer.py`](../src/srf_analysis/srf_viewer.py)
 - Figure 2: **ERA-5 integrated hydrometeors**
   - `src/atmos_viewer/era5.py`
 - Figure 3: **TB spectra**
