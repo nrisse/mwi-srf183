@@ -76,7 +76,7 @@ if __name__ == '__main__':
     # choose if with or without era-5
     era5 = False  # this is just as a test to see if clear sky matches
     
-    fig, axes = plt.subplots(5, 4, figsize=(7, 6), sharex=True, sharey=True,
+    fig, axes = plt.subplots(5, 4, figsize=(6, 7), sharex=True, sharey=True,
                              constrained_layout=True)
     
     axes[-1, 0].set_ylabel('$\Delta$TB [K]')
@@ -141,6 +141,15 @@ if __name__ == '__main__':
                                ds_com_rsd.dtb_mwi_est.sel(channel=channel,
                                                           est_type=est_type), 
                                s=2, c=c_list, linewidths=0)
+            
+            # annotate mean bias
+            mean = ds_com_rsd.dtb_mwi_est.sel(
+                channel=channel,
+                est_type=est_type).mean('profile').item()
+            mean = np.round(mean, 2)
+            axes[i, j].annotate(f'{mean} K', xy=(1, 0), 
+                                xycoords='axes fraction', ha='right', 
+                                va='bottom')
             
             if era5: 
                 if style == 'tb_obs':
