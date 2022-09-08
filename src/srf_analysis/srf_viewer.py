@@ -49,30 +49,30 @@ if __name__ == '__main__':
         # y axis settings
         ax.set_yticks(np.arange(-100, 25, 25))
         ax.set_ylim([ymin, ymax])
-    
-    match = np.array([183.362, 191.297])
-    f = dict(frequency=slice(*match*1e3))
+
     for i, channel in enumerate(mwi.channels_int):
         
         # MWI-RX183_DSB_Matlab.xlsx dataset
         axes[i, 0].plot(
             sen_dsb.data.frequency*1e-3, 
-            sen_dsb.data.raw.sel(channel=channel),
-            color='#666666', label='SRF-A', zorder=2)
+            sen_dsb.data.raw.sel(channel=channel).where(
+                sen_dsb.data.frequency < mwi.absorpt_line*1e3
+                ),
+            color='k', label='SRF-A', zorder=2, lw=0.8)
         
         axes[i, 0].plot(
-            sen_dsb.data.frequency.sel(**f)*1e-3, 
-            sen_dsb.data.raw.sel(channel=channel, **f),
-            color='#000000', label='SRF-A', zorder=2)
+            sen_dsb.data.frequency*1e-3, 
+            sen_dsb.data.raw.sel(channel=channel).where(
+                sen_dsb.data.frequency > mwi.absorpt_line*1e3
+                ),
+            color='k', label='SRF-A', zorder=2, lw=0.8)
         
         # MWI-RX183_Matlab.xslx
         axes[i, 1].plot(sen.data.frequency*1e-3,
                      sen.data.raw.sel(channel=channel),
-                     color='#666666', label='SRF-B', zorder=2)
+                     color='k', label='SRF-B', zorder=2, lw=0.8)
         
-        axes[i, 1].plot(sen.data.frequency.sel(**f)*1e-3,
-                     sen.data.raw.sel(channel=channel, **f),
-                     color='#000000', label='SRF-B', zorder=2)
+        axes[i, 0].axvline(mwi.absorpt_line, color='k', lw=0.8, linestyle=':')
         
         for i_ax in range(2):
             
@@ -86,7 +86,7 @@ if __name__ == '__main__':
             axes[i, i_ax].axvspan(
                 xmin=mwi.freq_bw[i, 2], 
                 xmax=mwi.freq_bw[i, 3], 
-                ymin=0, ymax=1-(ymax/(ymax-ymin)), color='bisque', lw=0, 
+                ymin=0, ymax=1-(ymax/(ymax-ymin)), color='navajowhite', lw=0, 
                 zorder=0)
     
     
