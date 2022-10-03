@@ -32,23 +32,23 @@ plt.ion()
 if __name__ == '__main__':
     
     # read nc files
-    #ds_com = xr.open_dataset(os.path.join(
-    #    os.environ['PATH_BRT'],
-    #    'TB_radiosondes_2019_MWI.nc'
-    #    ))
-    #ext = '_radiosondes'    
+    ds_com = xr.open_dataset(os.path.join(
+        os.environ['PATH_BRT'],
+        'TB_radiosondes_2019_MWI.nc'
+        ))
+    ext = '_radiosondes'    
     
     #ds_com = xr.open_dataset(os.path.join(
     #    os.environ['PATH_BRT'],
     #    'TB_era5_hyd_MWI.nc'))
     #ext = '_era5_hyd'
     
-    ds_com = xr.open_dataset(os.path.join(
-        os.environ['PATH_BRT'],
-        'TB_era5_MWI.nc'))
-    ext = '_era5'
+    #ds_com = xr.open_dataset(os.path.join(
+    #    os.environ['PATH_BRT'],
+    #    'TB_era5_MWI.nc'))
+    #ext = '_era5'
     
-    ds_com = ds_com.stack({'profile': ['grid_x', 'grid_y']})
+    #ds_com = ds_com.stack({'profile': ['grid_x', 'grid_y']})
     
     #%% calculate statistics (mean absolute error)
     ds_com_dtb_mae = np.fabs(ds_com.dtb_mwi_err).mean('profile')
@@ -58,22 +58,12 @@ if __name__ == '__main__':
     magnitude = 2
     for channel in ds_com.channel.values:
         print('\n', channel)
-        for err_type in ds_com_dtb_mae.err_type.values:
-            mae = np.round(ds_com_dtb_mae.sel(
-                channel=channel, 
-                magnitude=magnitude, 
-                err_type=err_type).values.item(), 2)
-            print(f'{err_type}: {mae}')
-    
-    magnitude = 2
-    for channel in ds_com.channel.values:
-        print('\n', channel)
         for err_type in ds_com.err_type.values:
-            mae = np.round(ds_com.dtb_mwi_err.sel(
+            mer = np.round(ds_com.dtb_mwi_err.sel(
                 channel=channel, 
                 magnitude=magnitude, 
                 err_type=err_type).mean('profile').values.item(), 2)
-            print(f'{err_type}: {mae}')
+            print(f'{err_type}: {mer}')
             
     #%% color for figures
     err_type_c = {
