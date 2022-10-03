@@ -18,15 +18,33 @@ load_dotenv()
 def readERA5press(fname2d,
                   fname3d,
                   descriptorFile,
+                  grid,
                   timeidx=None,
-                  grid=[0,-1,0,-1],
                   rmHyds=False):
     """
-    Read ERA5 data and return the profile for pamtra
+    Create pamtra object from an era-5 file.
 
-    grid=[c,d,a,b] which is sx,ex,sy,ey
+    Parameters
+    ----------
+    fname2d :
+        File name of single level file.
+    fname3d :
+        File name of pressure level file.
+    descriptorFile :
+        File name of descriptor file.
+    grid :
+        Indices of the extent of the ERA-5 field to be read [x0, x1, y0, y1].
+    timeidx : optional
+        Time index. The default is None.
+    rmHyds : optional
+        Whether to remove hydrometeors. The default is False.
+
+    Returns
+    -------
+    pam :
+        Pamtra object.
     """
-    
+
     variables1D = ['longitude', 'latitude']
     variables2D = ['skt', 'sst', 'msl', 'sp', 'u10', 'v10', 'lsm', 'siconc']
     variables3D = ['z', 't', 'q', 'clwc', 'ciwc', 'crwc', 'cswc']
@@ -62,12 +80,12 @@ def readERA5press(fname2d,
     if timeidx is None:
         timeidx = 0
 
-    unixtime = np.zeros(shape2D)+(datetime.datetime(year=1900, month=1, day=1, 
-                                                    hour=0, minute=0, second=0) + \
-                                  datetime.timedelta(hours=int(vals2D['time'][timeidx])) -\
-                                  datetime.datetime(1970,1,1)).total_seconds()
+    unixtime = np.zeros(shape2D)+(datetime.datetime(
+        year=1900, month=1, day=1, hour=0, minute=0, second=0) +\
+            datetime.timedelta(hours=int(vals2D['time'][timeidx])) -\
+                datetime.datetime(1970,1,1)).total_seconds()
 
-    pam_profile = dict() # empty dictionary to store pamtra Data
+    pam_profile = dict()  # empty dictionary to store pamtra data
 
     pam_profile['timestamp'] = unixtime
 
@@ -78,9 +96,11 @@ def readERA5press(fname2d,
 
     pam_profile['temp_lev'] = np.empty(shape3Dplus)
     pam_profile['temp'] = np.swapaxes(vals3D['t'][timeidx,::-1,c:d,a:b],0,2)
-    pam_profile['temp_lev'][...,1:-1] = (pam_profile['temp'][...,1:] + pam_profile['temp'][...,0:-1])*0.5
+    pam_profile['temp_lev'][...,1:-1] = (pam_profile['temp'][...,1:] +\
+                                         pam_profile['temp'][...,0:-1])*0.5
     pam_profile['temp_lev'][...,-1] = pam_profile['temp_lev'][...,-2]
-    pam_profile['temp_lev'][...,0] = np.swapaxes(vals2D['skt'][timeidx,c:d,a:b],0,1)
+    pam_profile['temp_lev'][...,0] = np.swapaxes(
+        vals2D['skt'][timeidx,c:d,a:b],0,1)
 
     z = np.swapaxes(vals3D['z'][timeidx,::-1,c:d,a:b],0,2)
     z_sfc = np.swapaxes(vals2D['z'][timeidx,c:d,a:b],0,1)
@@ -93,65 +113,76 @@ def readERA5press(fname2d,
     sfc_press = np.swapaxes(vals2D['sp'][timeidx,c:d,a:b],0,1)
     msl_press = np.swapaxes(vals2D['msl'][timeidx,c:d,a:b],0,1)
 
-    g = 9.80665  #gravity
-    Re = 6356766  #earth radius
+    g = 9.80665  # gravity
+    Re = 6356766  # earth radius
 
     pam_profile['hgt'] = np.abs(z/g)*Re/(Re-(z/g))
     pam_profile['hgt_lev'][...,0] = np.abs(z_sfc/g)*Re/(Re-(z_sfc/g))
-    # pam_profile['hgt_lev'][...,0] = z_sfc/g # orography or surface height according to ERA5 documentation
-    pam_profile['hgt_lev'][...,1:-1] = (pam_profile['hgt'][...,1:] + pam_profile['hgt'][...,0:-1])*0.5
-    pam_profile['hgt_lev'][...,-1] = pam_profile['hgt'][...,-1]+(pam_profile['hgt'][...,-1]-pam_profile['hgt_lev'][...,-2])
+    pam_profile['hgt_lev'][...,1:-1] = (pam_profile['hgt'][...,1:] +\
+                                        pam_profile['hgt'][...,0:-1])*0.5
+    pam_profile['hgt_lev'][...,-1] = pam_profile['hgt'][...,-1]+\
+        (pam_profile['hgt'][...,-1]-pam_profile['hgt_lev'][...,-2])
 
-    #*******************************************************************************
-    #  calculate pressure according to barometric formular
-    #*******************************************************************************
-    # SI Unit Pa
-
-    M = 0.02896 #molare Masse in kg mol-1
-    R = 8.314 #universelle Gaskonstante in J K-1 mol-1
+    # calculate pressure according to barometric formular
+    M = 0.02896  # molar mass in kg mol-1
+    R = 8.314  # molar gas constant in J K-1 mol-1
 
     for i in range(shape2D[0]):
         for j in range(shape2D[1]):
-            pam_profile['press'][i,j,:] = msl_press[i,j]*np.exp(-M*g*pam_profile['hgt'][i,j,:]/(R*288.15))
-            pam_profile['press_lev'][i,j,:] = msl_press[i,j]*np.exp(-M*g*pam_profile['hgt_lev'][i,j,:]/(R*288.15))
+            pam_profile['press'][i,j,:] = msl_press[i,j]*\
+                np.exp(-M*g*pam_profile['hgt'][i,j,:]/(R*288.15))
+            pam_profile['press_lev'][i,j,:] = msl_press[i,j]*\
+                np.exp(-M*g*pam_profile['hgt_lev'][i,j,:]/(R*288.15))
 
     pam_profile['press_lev'][...,0] = sfc_press
 
 
     pam_profile['relhum'] = np.empty(shape3D)
-    pam_profile['relhum'][:,:,:] = (pyPamtra.meteoSI.q2rh(np.swapaxes(vals3D['q'][timeidx,::-1,c:d,a:b],0,2),pam_profile['temp'][:,:,:],pam_profile['press'][:,:,:]) * 100.)
+    pam_profile['relhum'][:,:,:] = (pyPamtra.meteoSI.q2rh(
+        np.swapaxes(vals3D['q'][timeidx,::-1,c:d,a:b],0,2),
+        pam_profile['temp'][:,:,:],pam_profile['press'][:,:,:]) * 100.
+        )
 
     pam_profile['hydro_q'] = np.zeros(shape4D) + np.nan
-    pam_profile['hydro_q'][:,:,:,0] = np.swapaxes(vals3D['clwc'][timeidx,::-1,c:d,a:b],0,2)
-    pam_profile['hydro_q'][:,:,:,1] = np.swapaxes(vals3D['ciwc'][timeidx,::-1,c:d,a:b],0,2)
-    pam_profile['hydro_q'][:,:,:,2] = np.swapaxes(vals3D['crwc'][timeidx,::-1,c:d,a:b],0,2)
-    pam_profile['hydro_q'][:,:,:,3] = np.swapaxes(vals3D['cswc'][timeidx,::-1,c:d,a:b],0,2)
+    pam_profile['hydro_q'][:,:,:,0] = np.swapaxes(vals3D['clwc']
+                                                  [timeidx,::-1,c:d,a:b],0,2)
+    pam_profile['hydro_q'][:,:,:,1] = np.swapaxes(vals3D['ciwc']
+                                                  [timeidx,::-1,c:d,a:b],0,2)
+    pam_profile['hydro_q'][:,:,:,2] = np.swapaxes(vals3D['crwc']
+                                                  [timeidx,::-1,c:d,a:b],0,2)
+    pam_profile['hydro_q'][:,:,:,3] = np.swapaxes(vals3D['cswc']
+                                                  [timeidx,::-1,c:d,a:b],0,2)
 
-    # Somehow the mass mixing ratios can be smaller than 0
+    # mass mixing ratios can be smaller than 0
     pam_profile['hydro_q'][pam_profile['hydro_q'] < 0.] = 0.
 
     # to set specific hydrometeors to 0
     if rmHyds:
-        pam_profile['hydro_q'][:,:,:,0] = 0. # cloud water
-        pam_profile['hydro_q'][:,:,:,1] = 0. # cloud ice
-        pam_profile['hydro_q'][:,:,:,2] = 0. # rain 
-        pam_profile['hydro_q'][:,:,:,3] = 0. # snow
+        pam_profile['hydro_q'][:,:,:,0] = 0.  # cloud water
+        pam_profile['hydro_q'][:,:,:,1] = 0.  # cloud ice
+        pam_profile['hydro_q'][:,:,:,2] = 0.  # rain 
+        pam_profile['hydro_q'][:,:,:,3] = 0.  # snow
 
-    varPairs = [['u10','wind10u'],['v10','wind10v'],['skt','groundtemp'],['lsm','sfc_slf'],['siconc','sfc_sif']]
-
-    for era5Var,pamVar in varPairs:
+    varPairs = [['u10','wind10u'],
+                ['v10','wind10v'],
+                ['skt','groundtemp'],
+                ['lsm','sfc_slf'],
+                ['siconc','sfc_sif']]
+    for era5Var, pamVar in varPairs:
         pam_profile[pamVar] = np.swapaxes(vals2D[era5Var][timeidx,c:d,a:b],0,1)
-
+    
     # surface properties
     pam_profile['sfc_type'] = np.around(pam_profile['sfc_slf'])
-    pam_profile['sfc_type'][(pam_profile['sfc_type'] == 0) & (pam_profile['sfc_sif'] > 0)] = 2
+    pam_profile['sfc_type'][(pam_profile['sfc_type'] == 0) &
+                            (pam_profile['sfc_sif'] > 0)] = 2
     pam_profile['sfc_model'] = np.zeros(shape2D)
     pam_profile['sfc_refl'] = np.chararray(shape2D)
     pam_profile['sfc_refl'][:] = 'F'
     pam_profile['sfc_refl'][pam_profile['sfc_type'] > 0] = 'S'
     
     # observation height
-    pam_profile['obs_height'] = np.full((Nx, Ny, 1), fill_value=833000, dtype='int')
+    pam_profile['obs_height'] = np.full((Nx, Ny, 1), fill_value=833000, 
+                                        dtype='int')
     
     # create pamtra object
     pam = pyPamtra.pyPamtra()
@@ -161,7 +192,7 @@ def readERA5press(fname2d,
     else:
         for df in descriptorFile:
             pam.df.addHydrometeor(df)
-
+    
     pam.createProfile(**pam_profile)
     
     return pam
