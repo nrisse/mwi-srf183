@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7139121.svg)](https://doi.org/10.5281/zenodo.7139121)
+
 # MWI-SRF183
 EUMETSAT's next generation of polar-orbiting 
 satellites [MetOp-SG](https://www.eumetsat.int/metop-sg) will carry the 
