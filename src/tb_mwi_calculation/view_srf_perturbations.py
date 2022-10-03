@@ -71,6 +71,7 @@ if __name__ == '__main__':
     # y axis settings
     ax.set_yticks([-mag, 0, mag])
     ax.set_ylim([-mag-0.1*mag, mag+0.1*mag])
+    ax.set_yticklabels(['-a', '0', 'a'])
     
     # set x-limit
     ax.set_xticks(np.arange(170, 190, 1))
