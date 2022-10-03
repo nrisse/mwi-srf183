@@ -1,5 +1,5 @@
 # Getting started
-The following provides an overview of the steps to reproduce the study results.
+The following description provides an overview of the steps to reproduce the study results.
 
 ## Python environment
 The scripts were developed under python 3.10.5 and require basic functionalities 
